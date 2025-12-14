@@ -1,0 +1,34 @@
+export declare class Listing {
+    id: number;
+    make: string;
+    model: string;
+    year: number;
+    price: number;
+    city: string;
+    mileage?: number;
+    damageType?: string;
+    description?: string;
+    legalStatus?: string;
+    vin?: string;
+    whatsapp?: string;
+    images: string[];
+    views: number;
+    sellerName?: string;
+    sellerRating?: number;
+    latitude?: number;
+    longitude?: number;
+    isFeatured: boolean;
+    transmission?: string;
+    fuelType?: string;
+    color?: string;
+    engineSize?: string;
+    doors?: number;
+    seats?: number;
+    features?: string[];
+    insurance?: string;
+    serviceHistory: boolean;
+    testDrive: boolean;
+    warranty: boolean;
+    createdAt: Date;
+    updatedAt: Date;
+}
