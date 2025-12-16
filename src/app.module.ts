@@ -4,11 +4,18 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
+// ✅ استيراد الموديولات
+import { AuthModule } from './modules/auth/auth.module';
+import { ListingsModule } from './modules/listings/listings.module';
+import { UsersModule } from './modules/users/users.module';
+import { MediaModule } from './modules/media/media.module';
+import { PaymentsModule } from './modules/payments/payments.module';
+import { VinRecordsModule } from './modules/vin-records/vin-records.module';
+import { DeletionRequestsModule } from './modules/deletion-requests/deletion-requests.module';
+
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-    }),
+    ConfigModule.forRoot({ isGlobal: true }),
 
     TypeOrmModule.forRootAsync({
       useFactory: async () => {
@@ -20,7 +27,7 @@ import { AppService } from './app.service';
             url: process.env.DATABASE_URL,
             ssl: { rejectUnauthorized: false },
             autoLoadEntities: true,
-            synchronize: true, // Production الأفضل: false + migrations
+            synchronize: true,
           };
         }
 
@@ -32,6 +39,15 @@ import { AppService } from './app.service';
         };
       },
     }),
+
+    // ✅ أضفهم هنا
+    AuthModule,
+    UsersModule,
+    ListingsModule,
+    MediaModule,
+    PaymentsModule,
+    VinRecordsModule,
+    DeletionRequestsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
