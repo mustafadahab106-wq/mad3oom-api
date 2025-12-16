@@ -1,17 +1,13 @@
 export declare class User {
     id: number;
-    fullName: string;
+    name: string;
     email: string;
-    phone?: string;
-    passwordHash: string;
-    role: 'user' | 'admin';
-    city?: string;
-    listingsCount: number;
-    favoritesCount: number;
-    avatar?: string;
-    isVerified: boolean;
-    verificationCode?: string;
-    verificationExpires?: Date;
+    password: string;
+    phone: string;
+    city: string;
+    isActive: boolean;
+    role: string;
     createdAt: Date;
     updatedAt: Date;
+    lastLogin: Date;
 }

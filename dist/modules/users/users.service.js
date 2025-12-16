@@ -18,17 +18,55 @@ const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const user_entity_1 = require("./user.entity");
 let UsersService = class UsersService {
-    constructor(repo) {
-        this.repo = repo;
+    constructor(usersRepository) {
+        this.usersRepository = usersRepository;
     }
-    findAll() {
-        return this.repo.find();
+    async findAll() {
+        return await this.usersRepository.find({
+            order: { createdAt: 'DESC' },
+        });
     }
-    findById(id) {
-        return this.repo.findOne({ where: { id } });
+    async findOne(id) {
+        const user = await this.usersRepository.findOne({
+            where: { id },
+        });
+        if (!user) {
+            throw new common_1.NotFoundException(`User with ID ${id} not found`);
+        }
+        return user;
     }
-    findByEmail(email) {
-        return this.repo.findOne({ where: { email } });
+    async findByEmail(email) {
+        return await this.usersRepository.findOne({
+            where: { email },
+        });
+    }
+    async create(userData) {
+        const user = this.usersRepository.create({
+            ...userData,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            isActive: true,
+        });
+        return await this.usersRepository.save(user);
+    }
+    async update(id, userData) {
+        await this.usersRepository.update(id, {
+            ...userData,
+            updatedAt: new Date(),
+        });
+        return await this.findOne(id);
+    }
+    async remove(id) {
+        const result = await this.usersRepository.delete(id);
+        if (result.affected === 0) {
+            throw new common_1.NotFoundException(`User with ID ${id} not found`);
+        }
+    }
+    async deactivate(id) {
+        const user = await this.findOne(id);
+        user.isActive = false;
+        user.updatedAt = new Date();
+        return await this.usersRepository.save(user);
     }
 };
 exports.UsersService = UsersService;

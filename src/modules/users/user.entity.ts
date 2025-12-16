@@ -1,55 +1,37 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  CreateDateColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
-  fullName: string;
+  @Column({ nullable: true })
+  name: string;
 
   @Column({ unique: true })
   email: string;
 
   @Column({ nullable: true })
-  phone?: string;
+  password: string;
 
-  @Column()
-  passwordHash: string;
+  @Column({ nullable: true })
+  phone: string;
+
+  @Column({ nullable: true })
+  city: string;
+
+  @Column({ default: true })
+  isActive: boolean;
 
   @Column({ default: 'user' })
-  role: 'user' | 'admin';
-
-  @Column({ nullable: true })
-  city?: string;
-
-  @Column({ default: 0 })
-  listingsCount: number;
-
-  @Column({ default: 0 })
-  favoritesCount: number;
-
-  @Column({ nullable: true })
-  avatar?: string;
-
-  @Column({ default: false })
-  isVerified: boolean;
-
-  @Column({ nullable: true })
-  verificationCode?: string;
-
-  @Column({ nullable: true })
-  verificationExpires?: Date;
+  role: string; // 'admin', 'user', 'moderator'
 
   @CreateDateColumn()
   createdAt: Date;
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @Column({ nullable: true })
+  lastLogin: Date;
 }

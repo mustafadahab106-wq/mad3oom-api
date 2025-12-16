@@ -1,11 +1,20 @@
 import { Module } from '@nestjs/common';
-import { UsersModule } from '../users/users.module';
-import { AuthService } from './auth.service';
-import { AuthController } from './auth.controller';
+import { JwtModule } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
+import { ConfigModule } from '@nestjs/config';
+import { JwtStrategy } from './jwt.strategy';
+import { JwtAuthGuard } from './jwt-auth.guard';
 
 @Module({
-  imports: [UsersModule],
-  providers: [AuthService],
-  controllers: [AuthController],
+  imports: [
+    PassportModule,
+    ConfigModule, // أضف هذا
+    JwtModule.register({
+      secret: process.env.JWT_SECRET || 'temporary-secret-key', // قيمة مباشرة مؤقتة
+      signOptions: { expiresIn: '24h' },
+    }),
+  ],
+  providers: [JwtStrategy, JwtAuthGuard],
+  exports: [JwtModule, JwtAuthGuard],
 })
 export class AuthModule {}

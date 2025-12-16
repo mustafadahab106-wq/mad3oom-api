@@ -21,125 +21,61 @@ __decorate([
 __decorate([
     (0, typeorm_1.Column)(),
     __metadata("design:type", String)
-], Listing.prototype, "make", void 0);
+], Listing.prototype, "title", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)({ type: 'text', nullable: true }),
     __metadata("design:type", String)
-], Listing.prototype, "model", void 0);
+], Listing.prototype, "description", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
-    __metadata("design:type", Number)
-], Listing.prototype, "year", void 0);
-__decorate([
-    (0, typeorm_1.Column)('decimal', { precision: 12, scale: 2 }),
+    (0, typeorm_1.Column)('decimal', { precision: 10, scale: 2 }),
     __metadata("design:type", Number)
 ], Listing.prototype, "price", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)
-], Listing.prototype, "city", void 0);
+], Listing.prototype, "make", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", String)
+], Listing.prototype, "model", void 0);
 __decorate([
     (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", Number)
-], Listing.prototype, "mileage", void 0);
+], Listing.prototype, "year", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", String)
+], Listing.prototype, "city", void 0);
 __decorate([
     (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)
 ], Listing.prototype, "damageType", void 0);
 __decorate([
-    (0, typeorm_1.Column)('text', { nullable: true }),
-    __metadata("design:type", String)
-], Listing.prototype, "description", void 0);
-__decorate([
     (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)
 ], Listing.prototype, "legalStatus", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
+    (0, typeorm_1.Column)({ default: 'active' }),
     __metadata("design:type", String)
-], Listing.prototype, "vin", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
-    __metadata("design:type", String)
-], Listing.prototype, "whatsapp", void 0);
-__decorate([
-    (0, typeorm_1.Column)('simple-array', { nullable: true }),
-    __metadata("design:type", Array)
-], Listing.prototype, "images", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ default: 0 }),
-    __metadata("design:type", Number)
-], Listing.prototype, "views", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
-    __metadata("design:type", String)
-], Listing.prototype, "sellerName", void 0);
-__decorate([
-    (0, typeorm_1.Column)('float', { nullable: true }),
-    __metadata("design:type", Number)
-], Listing.prototype, "sellerRating", void 0);
-__decorate([
-    (0, typeorm_1.Column)('float', { nullable: true }),
-    __metadata("design:type", Number)
-], Listing.prototype, "latitude", void 0);
-__decorate([
-    (0, typeorm_1.Column)('float', { nullable: true }),
-    __metadata("design:type", Number)
-], Listing.prototype, "longitude", void 0);
+], Listing.prototype, "status", void 0);
 __decorate([
     (0, typeorm_1.Column)({ default: false }),
     __metadata("design:type", Boolean)
 ], Listing.prototype, "isFeatured", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
-    __metadata("design:type", String)
-], Listing.prototype, "transmission", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
-    __metadata("design:type", String)
-], Listing.prototype, "fuelType", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
-    __metadata("design:type", String)
-], Listing.prototype, "color", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
-    __metadata("design:type", String)
-], Listing.prototype, "engineSize", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
+    (0, typeorm_1.Column)({ default: 0 }),
     __metadata("design:type", Number)
-], Listing.prototype, "doors", void 0);
+], Listing.prototype, "views", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
+    (0, typeorm_1.Column)(),
     __metadata("design:type", Number)
-], Listing.prototype, "seats", void 0);
+], Listing.prototype, "userId", void 0);
 __decorate([
-    (0, typeorm_1.Column)('simple-array', { nullable: true }),
-    __metadata("design:type", Array)
-], Listing.prototype, "features", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
-    __metadata("design:type", String)
-], Listing.prototype, "insurance", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ default: false }),
-    __metadata("design:type", Boolean)
-], Listing.prototype, "serviceHistory", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ default: false }),
-    __metadata("design:type", Boolean)
-], Listing.prototype, "testDrive", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ default: false }),
-    __metadata("design:type", Boolean)
-], Listing.prototype, "warranty", void 0);
-__decorate([
-    (0, typeorm_1.CreateDateColumn)(),
+    (0, typeorm_1.Column)({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' }),
     __metadata("design:type", Date)
 ], Listing.prototype, "createdAt", void 0);
 __decorate([
-    (0, typeorm_1.UpdateDateColumn)(),
+    (0, typeorm_1.Column)({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' }),
     __metadata("design:type", Date)
 ], Listing.prototype, "updatedAt", void 0);
 exports.Listing = Listing = __decorate([

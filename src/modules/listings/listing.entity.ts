@@ -1,72 +1,52 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
-import { User } from '../users/user.entity';
+import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
 @Entity('listings')
 export class Listing {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => User, user => user.listings)
-  @JoinColumn({ name: 'userId' })
-  user: User;
-
   @Column()
-  userId: number;
+  title: string;
 
-  @Column()
-  make: string;
-
-  @Column()
-  model: string;
-
-  @Column()
-  year: number;
+  @Column({ type: 'text', nullable: true })
+  description: string;
 
   @Column('decimal', { precision: 10, scale: 2 })
   price: number;
 
-  @Column()
-  city: string;
-
-  @Column('simple-array', { nullable: true })
-  images: string[];
+  @Column({ nullable: true })
+  make: string;
 
   @Column({ nullable: true })
-  mileage: number;
+  model: string;
+
+  @Column({ nullable: true })
+  year: number;
+
+  @Column({ nullable: true })
+  city: string;
 
   @Column({ nullable: true })
   damageType: string;
 
   @Column({ nullable: true })
-  description: string;
-
-  @Column({ nullable: true })
   legalStatus: string;
 
-  @Column({ nullable: true })
-  vin: string;
-
-  @Column({ nullable: true })
-  whatsapp: string;
-
   @Column({ default: 'active' })
-  status: 'active' | 'inactive' | 'sold' | 'pending';
-
-  @Column({ default: 0 })
-  views: number;
+  status: string;
 
   @Column({ default: false })
   isFeatured: boolean;
 
-  @Column({ nullable: true })
-  featuredAt: Date;
+  @Column({ default: 0 })
+  views: number;
 
-  @Column({ nullable: true })
-  auctionEnd: Date;
+  @Column()
+  userId: number;
 
-  @CreateDateColumn()
+  @Column({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @Column({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
   updatedAt: Date;
 }

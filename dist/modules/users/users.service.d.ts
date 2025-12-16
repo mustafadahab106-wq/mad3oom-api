@@ -1,9 +1,13 @@
 import { Repository } from 'typeorm';
 import { User } from './user.entity';
 export declare class UsersService {
-    private readonly repo;
-    constructor(repo: Repository<User>);
+    private usersRepository;
+    constructor(usersRepository: Repository<User>);
     findAll(): Promise<User[]>;
-    findById(id: number): Promise<User | null>;
+    findOne(id: number): Promise<User>;
     findByEmail(email: string): Promise<User | null>;
+    create(userData: Partial<User>): Promise<User>;
+    update(id: number, userData: Partial<User>): Promise<User>;
+    remove(id: number): Promise<void>;
+    deactivate(id: number): Promise<User>;
 }

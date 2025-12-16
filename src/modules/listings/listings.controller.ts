@@ -1,108 +1,72 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Put,
-  Delete,
-  Body,
-  Param,
-  Query,
-  Req,
-  UseGuards,
-  ParseIntPipe,
-} from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Put, Delete, UseGuards, Query } from '@nestjs/common';
+// import { JwtAuthGuard } from '../auth/jwt-auth.guard'; // علق مؤقتاً
 import { ListingsService } from './listings.service';
 import { Listing } from './listing.entity';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
-@Controller('api/listings')
+@Controller('listings')
 export class ListingsController {
   constructor(private readonly listingsService: ListingsService) {}
 
-  // ✅ جلب جميع الإعلانات
   @Get()
-  async findAll(@Query() filters: any) {
-    const listings = await this.listingsService.findAll(filters);
-    return { success: true, data: listings, count: listings.length };
-  }
-
-  // ✅ إعلاناتي (لازم تكون قبل :id)
-  @Get('my')
-  @UseGuards(JwtAuthGuard)
-  async findMyListings(@Req() req: any) {
-    const userId = req.user.id;
-    const listings = await this.listingsService.findMyListings(userId);
-    return { success: true, data: listings, count: listings.length };
-  }
-
-  // ✅ إحصائيات (لازم تكون قبل :id)
-  @Get('stats/my')
-  @UseGuards(JwtAuthGuard)
-  async getMyStats(@Req() req: any) {
-    const stats = await this.listingsService.getStats(req.user.id);
-    return { success: true, data: stats };
-  }
-
-  // ✅ إعلانات مشابهة (لازم تكون قبل :id)
-  @Get(':id/similar')
-  async getSimilar(@Param('id', ParseIntPipe) id: number) {
-    const listing = await this.listingsService.findOne(id);
-    if (!listing) return { success: false, message: 'لم يتم العثور على الإعلان' };
-
-    const similar = await this.listingsService.findSimilar(listing.make, id, 4);
-    return { success: true, data: similar };
-  }
-
-  // ✅ جلب إعلان واحد (خليه في النهاية)
-  @Get(':id')
-  async findOne(@Param('id', ParseIntPipe) id: number) {
-    const listing = await this.listingsService.findOne(id);
-    if (!listing) return { success: false, message: 'لم يتم العثور على الإعلان' };
-    return { success: true, data: listing };
-  }
-
-  // ✅ إنشاء إعلان جديد
-  @Post()
-  @UseGuards(JwtAuthGuard)
-  async create(@Body() data: Partial<Listing>, @Req() req: any) {
-    const listing = await this.listingsService.create({
-      ...data,
-      userId: req.user.id,
-    });
-    return { success: true, data: listing, message: 'تم إنشاء الإعلان بنجاح' };
-  }
-
-  // ✅ تحديث إعلان
-  @Put(':id')
-  @UseGuards(JwtAuthGuard)
-  async update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() data: Partial<Listing>,
-    @Req() req: any,
+  // @UseGuards(JwtAuthGuard) // علق مؤقتاً
+  findAll(
+    @Query('section') section?: string,
+    @Query('make') make?: string,
+    @Query('model') model?: string,
+    @Query('minPrice') minPrice?: string,
+    @Query('maxPrice') maxPrice?: string,
+    @Query('minYear') minYear?: string,
+    @Query('maxYear') maxYear?: string,
+    @Query('city') city?: string,
+    @Query('damageType') damageType?: string,
+    @Query('legalStatus') legalStatus?: string,
+    @Query('search') search?: string,
+    @Query('category') category?: string,
   ) {
-    const listing = await this.listingsService.findOne(id);
-    if (!listing) return { success: false, message: 'لم يتم العثور على الإعلان' };
-
-    if (listing.userId !== req.user.id) {
-      return { success: false, message: 'ليس لديك صلاحية لتعديل هذا الإعلان' };
-    }
-
-    const updated = await this.listingsService.update(id, data);
-    return { success: true, data: updated, message: 'تم تحديث الإعلان بنجاح' };
+    const filters = {
+      ...(section && { section }),
+      ...(make && { make }),
+      ...(model && { model }),
+      ...(minPrice && { minPrice: parseFloat(minPrice) }),
+      ...(maxPrice && { maxPrice: parseFloat(maxPrice) }),
+      ...(minYear && { minYear: parseInt(minYear) }),
+      ...(maxYear && { maxYear: parseInt(maxYear) }),
+      ...(city && { city }),
+      ...(damageType && { damageType }),
+      ...(legalStatus && { legalStatus }),
+      ...(search && { search }),
+      ...(category && { make: category }), // استخدام category كـ make
+    };
+    
+    return this.listingsService.findAll(filters);
+  }
+// @UseGuards(JwtAuthGuard) // علق مؤقتاً
+  @Post()
+  create(@Body() listingData: Partial<Listing>) {
+    return this.listingsService.create(listingData);
   }
 
-  // ✅ حذف إعلان
+  @Get(':id')
+  // @UseGuards(JwtAuthGuard) // علق مؤقتاً
+  findOne(@Param('id') id: number) {
+    return this.listingsService.findOne(id);
+  }
+
+  @Put(':id')
+  // @UseGuards(JwtAuthGuard) // علق مؤقتاً
+  update(@Param('id') id: number, @Body() listingData: Partial<Listing>) {
+    return this.listingsService.update(id, listingData);
+  }
+
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
-  async remove(@Param('id', ParseIntPipe) id: number, @Req() req: any) {
-    const listing = await this.listingsService.findOne(id);
-    if (!listing) return { success: false, message: 'لم يتم العثور على الإعلان' };
+  // @UseGuards(JwtAuthGuard) // علق مؤقتاً
+  remove(@Param('id') id: number) {
+    return this.listingsService.remove(id);
+  }
 
-    if (listing.userId !== req.user.id) {
-      return { success: false, message: 'ليس لديك صلاحية لحذف هذا الإعلان' };
-    }
-
-    const result = await this.listingsService.remove(id);
-    return { success: result.success, message: result.message };
+  @Get('user/:userId')
+  // @UseGuards(JwtAuthGuard) // علق مؤقتاً
+  findMyListings(@Param('userId') userId: number) {
+    return this.listingsService.findMyListings(userId);
   }
 }
