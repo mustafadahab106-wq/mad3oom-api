@@ -4,7 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
-// ✅ استيراد الموديولات
+// Modules
 import { AuthModule } from './modules/auth/auth.module';
 import { ListingsModule } from './modules/listings/listings.module';
 import { UsersModule } from './modules/users/users.module';
@@ -21,26 +21,28 @@ import { DeletionRequestsModule } from './modules/deletion-requests/deletion-req
       useFactory: async () => {
         const isRailwayPostgres = !!process.env.DATABASE_URL;
 
+        const common = {
+          entities: [__dirname + '/**/*.entity{.ts,.js}'],
+          synchronize: true, // مؤقتًا فقط
+        };
+
         if (isRailwayPostgres) {
           return {
             type: 'postgres',
             url: process.env.DATABASE_URL,
             ssl: { rejectUnauthorized: false },
-            autoLoadEntities: true,
-            synchronize: true,
+            ...common,
           };
         }
 
         return {
           type: 'sqlite',
           database: process.env.SQLITE_DB_PATH || 'database.sqlite',
-          autoLoadEntities: true,
-          synchronize: true,
+          ...common,
         };
       },
     }),
 
-    // ✅ أضفهم هنا
     AuthModule,
     UsersModule,
     ListingsModule,
