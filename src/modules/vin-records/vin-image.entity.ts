@@ -1,22 +1,22 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
 import { VinRecord } from './vin-record.entity';
 
-@Entity('vin_images')
+@Entity()
 export class VinImage {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @PrimaryGeneratedColumn()
+  id: number;
 
   @Column()
   url: string;
 
-  @Column()
+  @Column({ nullable: true })
   caption: string;
 
-  @Column()
-  order: number;
-
-  @ManyToOne(() => VinRecord, (vinRecord) => vinRecord.images, {
-    onDelete: 'CASCADE',
-  })
+  // 🔴 هذا الخطأ لأن vinRecord.images غير موجود
+  // @ManyToOne(() => VinRecord, (vinRecord) => vinRecord.images)
+  // vinRecord: VinRecord;
+  
+  // 🟢 الحل المؤقت: استخدم بدون علاقة عكسية
+  @ManyToOne(() => VinRecord)
   vinRecord: VinRecord;
 }

@@ -12,11 +12,30 @@ export class AppController {
 
   @Get('health')
   healthCheck() {
-    return { status: 'ok', timestamp: new Date().toISOString() };
+    return { 
+      status: 'ok', 
+      timestamp: new Date().toISOString(),
+      service: 'mad3oom-api',
+      version: '1.0.0'
+    };
   }
 
   @Get('ping')
   ping() {
-    return { ok: true, service: 'mad3oom-api', time: new Date().toISOString() };
+    return { 
+      ok: true, 
+      service: 'mad3oom-api', 
+      time: new Date().toISOString(),
+      uptime: process.uptime()
+    };
+  }
+
+  @Get('env')
+  getEnv() {
+    return {
+      node_env: process.env.NODE_ENV,
+      port: process.env.PORT,
+      database_url: process.env.DATABASE_URL ? 'set' : 'not set',
+    };
   }
 }

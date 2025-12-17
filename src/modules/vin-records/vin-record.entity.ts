@@ -1,35 +1,43 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
-import { VinImage } from './vin-image.entity';
+// modules/vin-records/entities/vin-record.entity.ts
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
 
 @Entity('vin_records')
 export class VinRecord {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-  @Column({ unique: true })
+  @Column({ unique: true, length: 17 })
   vin: string;
 
-  @Column()
+  @Column({ length: 100 })
   make: string;
 
-  @Column()
+  @Column({ length: 100 })
   model: string;
 
-  @Column()
+  @Column('int')
   year: number;
 
-  @Column()
+  @Column({ name: 'auction_name', length: 200 })
   auction_name: string;
 
-  @Column()
+  @Column({ name: 'lot_number', length: 50 })
   lot_number: string;
 
-  @Column()
+  @Column({ name: 'sold_price', type: 'decimal', precision: 10, scale: 2 })
   sold_price: number;
 
-  @Column()
+  @Column({ name: 'damage_type', length: 100, nullable: true })
   damage_type: string;
 
-  @OneToMany(() => VinImage, (img) => img.vinRecord, { cascade: true })
-  images: VinImage[];
+  // 🟢 حقل مؤقت بدلاً من العلاقة
+  @Column({ 
+    name: 'image_urls', 
+    type: 'simple-array', 
+    nullable: true 
+  })
+  imageUrls: string[];
+
+  @CreateDateColumn({ name: 'created_at' })
+  created_at: Date;
 }

@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -13,36 +13,54 @@ import { PaymentsModule } from './modules/payments/payments.module';
 import { VinRecordsModule } from './modules/vin-records/vin-records.module';
 import { DeletionRequestsModule } from './modules/deletion-requests/deletion-requests.module';
 
+// 🟢 استورد الكيانات بشكل صريح من مجلد dist
+// هذا أفضل لبيئة الإنتاج
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({ 
+      isGlobal: true,
+      envFilePath: ['.env.local', '.env'],
+    }),
 
     TypeOrmModule.forRootAsync({
-      useFactory: async () => {
-        const isRailwayPostgres = !!process.env.DATABASE_URL;
-
-        const common = {
-          entities: [__dirname + '/**/*.entity{.ts,.js}'],
-          synchronize: true, // مؤقتًا فقط
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => {
+        const isProduction = configService.get('NODE_ENV') === 'production';
+        const databaseUrl = configService.get('DATABASE_URL');
+        
+        // 🟢 الخيار الأفضل: استخدام autoLoadEntities مع TypeOrmModule.forFeature
+        const config: any = {
+          autoLoadEntities: true, // ✅ هذا سيحمّل الكيانات تلقائياً من الوحدات
+          synchronize: !isProduction,
+          logging: !isProduction ? ['query', 'error'] : ['error'],
         };
 
-        if (isRailwayPostgres) {
+        if (databaseUrl) {
+          // Railway PostgreSQL
+          const url = new URL(databaseUrl);
           return {
             type: 'postgres',
-            url: process.env.DATABASE_URL,
+            host: url.hostname,
+            port: parseInt(url.port),
+            username: url.username,
+            password: url.password,
+            database: url.pathname.slice(1),
             ssl: { rejectUnauthorized: false },
-            ...common,
+            ...config,
           };
         }
 
+        // Local SQLite
         return {
           type: 'sqlite',
-          database: process.env.SQLITE_DB_PATH || 'database.sqlite',
-          ...common,
+          database: configService.get('SQLITE_DB_PATH', 'database.sqlite'),
+          ...config,
         };
       },
+      inject: [ConfigService],
     }),
 
+    // 🟢 تأكد من تسجيل جميع الوحدات
     AuthModule,
     UsersModule,
     ListingsModule,
