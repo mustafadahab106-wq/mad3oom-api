@@ -7,24 +7,54 @@ async function bootstrap() {
   
   try {
     logger.log('🚀 Starting application...');
-    
-    // تسجيل معلومات مفيدة
-    console.log('=================================');
-    console.log('ENV Variables:');
-    console.log('- NODE_ENV:', process.env.NODE_ENV);
-    console.log('- PORT:', process.env.PORT);
-    console.log('- DATABASE_URL:', process.env.DATABASE_URL ? 'Set' : 'Not set');
-    console.log('=================================');
-    
-    // 🟢 إذا كان هناك DATABASE_URL في التطوير، احذر
-    if (process.env.NODE_ENV !== 'production' && process.env.DATABASE_URL) {
-      console.log('⚠️  WARNING: Using DATABASE_URL in development mode');
-      console.log('⚠️  This will try to connect to Railway with SSL');
-      console.log('⚠️  For local dev, remove DATABASE_URL from .env file');
+    // أضف هذا في main.ts قبل NestFactory.create()
+async function testDatabaseConnection() {
+  const { Client } = require('pg');
+  const databaseUrl = process.env.DATABASE_URL;
+  
+  if (!databaseUrl) {
+    console.log('ℹ️ No DATABASE_URL, using SQLite');
+    return true;
+  }
+  
+  // أضف sslmode=no-verify للاختبار
+  const testUrl = databaseUrl.includes('?') 
+    ? `${databaseUrl}&sslmode=no-verify`
+    : `${databaseUrl}?sslmode=no-verify`;
+  
+  const client = new Client({
+    connectionString: testUrl,
+  });
+  
+  try {
+    await client.connect();
+    console.log('✅ Database connection successful');
+    await client.end();
+    return true;
+  } catch (error) {
+    console.error('❌ Database connection failed:', error.message);
+    return false;
+  }
+}
+
+// استدعِ الدالة قبل بدء التطبيق
+await testDatabaseConnection();
+    // 🟢 تحقق من إعدادات SSL
+    const databaseUrl = process.env.DATABASE_URL;
+    if (databaseUrl) {
+      console.log('🔗 SSL Configuration:');
+      console.log('- URL:', databaseUrl.includes('sslmode=') ? 'Has sslmode' : 'No sslmode');
+      console.log('- Railway:', databaseUrl.includes('railway.app') ? 'Yes' : 'No');
+      
+      // تحذير إذا لم يكن هناك sslmode
+      if (!databaseUrl.includes('sslmode=')) {
+        console.log('⚠️  WARNING: DATABASE_URL missing sslmode parameter');
+        console.log('💡 Add ?sslmode=no-verify to the end of DATABASE_URL');
+      }
     }
     
     const app = await NestFactory.create(AppModule, {
-      logger: ['error', 'warn', 'log'],
+      logger: ['error', 'warn', 'log', 'verbose'],
       abortOnError: false,
     });
 
@@ -34,22 +64,23 @@ async function bootstrap() {
       credentials: true,
     });
 
-    const port = process.env.PORT || 4000;
+    const port = process.env.PORT || 3000;
     
-    await app.listen(port);
+    await app.listen(port, '0.0.0.0');
     
-    logger.log(`✅ Application is running on: http://localhost:${port}`);
-    logger.log(`🏥 Health check: http://localhost:${port}/health`);
-    logger.log(`📡 Ping: http://localhost:${port}/ping`);
+    logger.log(`✅ Application is running on: http://0.0.0.0:${port}`);
+    logger.log(`🏥 Health check: http://0.0.0.0:${port}/health`);
+    logger.log(`📡 Ping: http://0.0.0.0:${port}/ping`);
     
   } catch (error) {
     logger.error('❌ Failed to start application:', error.message);
     
-    if (error.message.includes('SSL connections')) {
-      console.log('\n🔧 SOLUTION:');
-      console.log('1. For local development, remove DATABASE_URL from .env');
-      console.log('2. Or change NODE_ENV to "development"');
-      console.log('3. Or use SQLite by setting DB_TYPE=sqlite');
+    if (error.message.includes('self-signed certificate')) {
+      console.log('\n🔧 SSL CERTIFICATE FIX:');
+      console.log('1. Add ?sslmode=no-verify to DATABASE_URL');
+      console.log('2. Or use rejectUnauthorized: false in TypeORM config');
+      console.log('3. Example:');
+      console.log('   DATABASE_URL=postgresql://...?sslmode=no-verify');
     }
     
     process.exit(1);

@@ -26,12 +26,14 @@ import { DeletionRequestsModule } from './modules/deletion-requests/deletion-req
       useFactory: (configService: ConfigService) => {
         const isProduction = configService.get('NODE_ENV') === 'production';
         const databaseUrl = configService.get('DATABASE_URL');
+        const isRailway = databaseUrl?.includes('railway.app') || false;
         
         console.log('🔧 Environment:', isProduction ? 'Production' : 'Development');
-        console.log('🔧 Database URL present:', !!databaseUrl);
+        console.log('🔧 Database URL:', databaseUrl ? 'Set' : 'Not set');
+        console.log('🔧 Railway detected:', isRailway);
         
-        // 🟢 الحالة 1: التنمية المحلية - استخدم SQLite
-        if (!isProduction && !databaseUrl) {
+        // 🟢 الحالة 1: التنمية المحلية بدون DATABASE_URL
+        if (!databaseUrl) {
           console.log('🔧 Using SQLite for local development');
           return {
             type: 'sqlite',
@@ -42,12 +44,12 @@ import { DeletionRequestsModule } from './modules/deletion-requests/deletion-req
           };
         }
         
-        // 🟢 الحالة 2: Railway Production مع SSL
-        if (databaseUrl && isProduction) {
-          console.log('🔧 Using Railway PostgreSQL with SSL');
-          let finalUrl = databaseUrl;
+        // 🟢 الحالة 2: Railway مع SSL وشهادات ذاتية التوقيع
+        if (isRailway || isProduction) {
+          console.log('🔧 Configuring for Railway/Production with SSL');
           
-          // تأكد من وجود sslmode=require
+          // تأكد من أن URL يحتوي على sslmode=require
+          let finalUrl = databaseUrl;
           if (!finalUrl.includes('sslmode=')) {
             const separator = finalUrl.includes('?') ? '&' : '?';
             finalUrl = `${finalUrl}${separator}sslmode=require`;
@@ -56,20 +58,24 @@ import { DeletionRequestsModule } from './modules/deletion-requests/deletion-req
           return {
             type: 'postgres',
             url: finalUrl,
-            ssl: true,
+            // 🟢 الحل الجذري: استخدم sslMode بدلاً من ssl
+            ssl: {
+              rejectUnauthorized: false, // ✅ هذا يحل مشكلة الشهادات ذاتية التوقيع
+            },
             extra: {
               ssl: {
                 rejectUnauthorized: false,
               },
             },
             entities: ['dist/**/*.entity.js'],
-            synchronize: false,
+            synchronize: false, // 🚨 مهم: false في الإنتاج
             logging: ['error', 'warn'],
+            connectTimeoutMS: 15000,
           };
         }
         
-        // 🟢 الحالة 3: PostgreSQL محلي بدون SSL
-        console.log('🔧 Using local PostgreSQL without SSL');
+        // 🟢 الحالة 3: PostgreSQL محلي
+        console.log('🔧 Using local PostgreSQL');
         return {
           type: 'postgres',
           host: configService.get('DB_HOST', 'localhost'),
@@ -80,7 +86,6 @@ import { DeletionRequestsModule } from './modules/deletion-requests/deletion-req
           entities: ['dist/**/*.entity.js'],
           synchronize: !isProduction,
           logging: true,
-          ssl: false, // ⚠️ مهم: false للتطوير المحلي
         };
       },
     }),

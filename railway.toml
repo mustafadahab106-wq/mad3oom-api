@@ -7,16 +7,13 @@ installCommand = "npm ci --only=production"
 startCommand = "npm start"
 healthcheckPath = "/health"
 healthcheckTimeout = 30
-initialDelay = 30
+initialDelay = 40  # 🟢 أعط وقتًا أطول لبدء قاعدة البيانات
 
 [variables]
 NODE_ENV = "production"
-PORT = "4000"
+PORT = "3000"
 
-# تأكد من أن DATABASE_URL يحتوي على sslmode
-[deploy.healthCheck]
-path = "/health"
-initialDelay = 30
-timeout = 10
-interval = 60
-maxRetries = 3
+# تأكد من إضافة sslmode
+transform = true
+[transform.environment]
+DATABASE_URL = { regex = "^(postgresql://.+)", replace = "${1}?sslmode=no-verify" }
