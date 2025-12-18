@@ -2,12 +2,6 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Logger } from '@nestjs/common';
 
-async function bootstrap() {
-  const logger = new Logger('Bootstrap');
-  
-  try {
-    logger.log('🚀 Starting application...');
-    // أضف هذا في main.ts قبل NestFactory.create()
 async function testDatabaseConnection() {
   const { Client } = require('pg');
   const databaseUrl = process.env.DATABASE_URL;
@@ -37,8 +31,19 @@ async function testDatabaseConnection() {
   }
 }
 
-// استدعِ الدالة قبل بدء التطبيق
-await testDatabaseConnection();
+async function bootstrap() {
+  const logger = new Logger('Bootstrap');
+  
+  try {
+    logger.log('🚀 Starting application...');
+    
+    // 🟢 اختبر اتصال قاعدة البيانات أولاً
+    const dbConnected = await testDatabaseConnection();
+    
+    if (!dbConnected) {
+      console.log('⚠️  Database connection test failed, but continuing anyway...');
+    }
+    
     // 🟢 تحقق من إعدادات SSL
     const databaseUrl = process.env.DATABASE_URL;
     if (databaseUrl) {
@@ -54,7 +59,7 @@ await testDatabaseConnection();
     }
     
     const app = await NestFactory.create(AppModule, {
-      logger: ['error', 'warn', 'log', 'verbose'],
+      logger: ['error', 'warn', 'log'], // ⚠️ إزالة 'verbose' لتقليل السجلات
       abortOnError: false,
     });
 
