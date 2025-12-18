@@ -1,9 +1,13 @@
 import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
+import { DataSource } from 'typeorm';
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+  constructor(
+    private readonly appService: AppService,
+    private readonly dataSource: DataSource, // 🔴 أضف هذا
+  ) {}
 
   @Get()
   getHello(): any {
@@ -11,13 +15,26 @@ export class AppController {
   }
 
   @Get('health')
-  healthCheck() {
-    return { 
-      status: 'ok', 
-      timestamp: new Date().toISOString(),
-      service: 'mad3oom-api',
-      version: '1.0.0'
-    };
+  async healthCheck() {
+    try {
+      // 🔴 اختبر اتصال قاعدة البيانات
+      await this.dataSource.query('SELECT 1');
+      
+      return { 
+        status: 'ok', 
+        database: 'connected',
+        timestamp: new Date().toISOString(),
+        service: 'mad3oom-api',
+        version: '1.0.0'
+      };
+    } catch (error) {
+      return { 
+        status: 'error', 
+        database: 'disconnected',
+        error: error.message,
+        timestamp: new Date().toISOString()
+      };
+    }
   }
 
   @Get('ping')
@@ -27,15 +44,6 @@ export class AppController {
       service: 'mad3oom-api', 
       time: new Date().toISOString(),
       uptime: process.uptime()
-    };
-  }
-
-  @Get('env')
-  getEnv() {
-    return {
-      node_env: process.env.NODE_ENV,
-      port: process.env.PORT,
-      database_url: process.env.DATABASE_URL ? 'set' : 'not set',
     };
   }
 }

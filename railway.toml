@@ -1,14 +1,22 @@
 [build]
 builder = "nixpacks"
 buildCommand = "npm run build"
+installCommand = "npm ci --only=production"
 
 [deploy]
 startCommand = "npm start"
-healthcheckPath = "/api/health"
+healthcheckPath = "/health"
 healthcheckTimeout = 30
-restartPolicyType = "never"
-restartPolicyMaxRetries = 10
+initialDelay = 30
 
 [variables]
 NODE_ENV = "production"
 PORT = "4000"
+
+# تأكد من أن DATABASE_URL يحتوي على sslmode
+[deploy.healthCheck]
+path = "/health"
+initialDelay = 30
+timeout = 10
+interval = 60
+maxRetries = 3

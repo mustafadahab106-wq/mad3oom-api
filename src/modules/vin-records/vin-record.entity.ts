@@ -1,4 +1,4 @@
-// modules/vin-records/entities/vin-record.entity.ts
+// src/modules/vin-records/entities/vin-record.entity.ts
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
 
 @Entity('vin_records')
@@ -30,7 +30,7 @@ export class VinRecord {
   @Column({ name: 'damage_type', length: 100, nullable: true })
   damage_type: string;
 
-  // 🟢 حقل مؤقت بدلاً من العلاقة
+  // 🟢 استخدم simple-array لصور مؤقتاً
   @Column({ 
     name: 'image_urls', 
     type: 'simple-array', 
