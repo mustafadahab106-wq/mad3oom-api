@@ -19,7 +19,7 @@ async function testDatabaseConnection() {
   const client = new Client({
     connectionString: testUrl,
   });
-  
+
   try {
     await client.connect();
     console.log('✅ Database connection successful');
@@ -70,7 +70,7 @@ async function bootstrap() {
     });
 
     const port = process.env.PORT || 3000;
-    
+    app.setGlobalPrefix('api');
     await app.listen(port, '0.0.0.0');
     
     logger.log(`✅ Application is running on: http://0.0.0.0:${port}`);
