@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Param, Put, Delete, UseGuards, Query } from '@nestjs/common';
 // import { JwtAuthGuard } from '../auth/jwt-auth.guard'; // علق مؤقتاً
 import { ListingsService } from './listings.service';
-import { Listing } from './listing.entity';
+import { Listing } from './entities/listing.entity';
 
 @Controller('listings')
 export class ListingsController {

@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+// src/modules/listings/entities/listing.entity.ts
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 
 @Entity('listings')
 export class Listing {
@@ -8,19 +9,20 @@ export class Listing {
   @Column()
   title: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column('text', { nullable: true })
   description: string;
 
-  @Column('decimal', { precision: 10, scale: 2 })
+  @Column('decimal', { precision: 10, scale: 2, nullable: true })
   price: number;
 
+  // الحقول المطلوبة للخدمة:
   @Column({ nullable: true })
   make: string;
 
   @Column({ nullable: true })
   model: string;
 
-  @Column({ nullable: true })
+  @Column('int', { nullable: true })
   year: number;
 
   @Column({ nullable: true })
@@ -38,15 +40,18 @@ export class Listing {
   @Column({ default: false })
   isFeatured: boolean;
 
+  @Column({ type: 'timestamp', nullable: true })
+  auctionEnd: Date;
+
   @Column({ default: 0 })
   views: number;
 
-  @Column()
+  @Column({ nullable: true })
   userId: number;
 
-  @Column({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
+  @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
-  @Column({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
+  @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 }

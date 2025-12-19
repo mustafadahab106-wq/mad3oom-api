@@ -1,8 +1,7 @@
-// modules/vin-records/vin-records.module.ts
+// src/modules/vin-records/vin-records.module.ts
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { VinRecord } from './vin-record.entity';
-// 🔴 لا تستورد VinImage الآن
+import { VinRecord } from './entities/vin-record.entity';
 import { VinRecordsService } from './vin-records.service';
 import { VinRecordsController } from './vin-records.controller';
 

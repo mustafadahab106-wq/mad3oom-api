@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { VinRecord } from './vin-record.entity';
+import { VinRecord } from './entities/vin-record.entity';
 
 @Injectable()
 export class VinRecordsService {

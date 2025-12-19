@@ -30,7 +30,6 @@ export class VinRecord {
   @Column({ name: 'damage_type', length: 100, nullable: true })
   damage_type: string;
 
-  // 🟢 استخدم simple-array لصور مؤقتاً
   @Column({ 
     name: 'image_urls', 
     type: 'simple-array', 
