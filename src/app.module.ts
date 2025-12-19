@@ -7,12 +7,11 @@ import { AppService } from './app.service';
 
 // Modules
 import { AuthModule } from './modules/auth/auth.module';
-// علّق الوحدات التي بها مشاكل مؤقتاً
-// import { ListingsModule } from './modules/listings/listings.module';
+import { ListingsModule } from './modules/listings/listings.module'; // 🟢 تأكد من وجود هذا
 import { UsersModule } from './modules/users/users.module';
 import { MediaModule } from './modules/media/media.module';
 import { PaymentsModule } from './modules/payments/payments.module';
-// import { VinRecordsModule } from './modules/vin-records/vin-records.module';
+import { VinRecordsModule } from './modules/vin-records/vin-records.module';
 import { DeletionRequestsModule } from './modules/deletion-requests/deletion-requests.module';
 
 @Module({
@@ -32,10 +31,10 @@ import { DeletionRequestsModule } from './modules/deletion-requests/deletion-req
 
     AuthModule,
     UsersModule,
-    // ListingsModule, // 🔴 علّق مؤقتاً
+    ListingsModule, // 🟢 تأكد من وجود هذا السطر
     MediaModule,
     PaymentsModule,
-    // VinRecordsModule, // 🔴 علّق مؤقتاً
+    VinRecordsModule,
     DeletionRequestsModule,
   ],
   controllers: [AppController],
