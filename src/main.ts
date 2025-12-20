@@ -72,7 +72,17 @@ async function bootstrap() {
     const port = process.env.PORT || 3000;
     
     await app.listen(port, '0.0.0.0');
-    
+    const server = app.getHttpAdapter().getInstance();
+const stack = server?._router?.stack || [];
+const routes = stack
+  .filter((l) => l.route)
+  .map((l) => {
+    const methods = Object.keys(l.route.methods || {}).join(',').toUpperCase();
+    return `${methods} ${l.route.path}`;
+  });
+
+console.log('🧭 ROUTES:', routes);
+
     logger.log(`✅ Application is running on: http://0.0.0.0:${port}`);
     logger.log(`🏥 Health check: http://0.0.0.0:${port}/health`);
     logger.log(`📡 Ping: http://0.0.0.0:${port}/ping`);
