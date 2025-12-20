@@ -40,8 +40,11 @@ export class Listing {
   @Column({ default: false })
   isFeatured: boolean;
 
-  @Column({ type: 'timestamp', nullable: true })
-  auctionEnd: Date;
+  // ✅ SQLite compatible
+@Column({ type: 'datetime', nullable: true })
+auctionEnd: Date | null;
+
+
 
   @Column({ default: 0 })
   views: number;

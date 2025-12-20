@@ -6,12 +6,11 @@
   "private": true,
   "license": "MIT",
   "scripts": {
-    "build": "nest build",
-    "start": "node dist/main",
-    "start:dev": "nest start --watch",
-    "start:prod": "node dist/main",
-    "test:db": "ts-node -r tsconfig-paths/register src/scripts/test-db-connection.ts",
-    "railway:deploy": "npm run build && npm run start:prod"
+  "build": "rimraf dist && nest build",
+  "start": "node dist/main.js",
+  "start:dev": "nest start --watch",
+  "start:prod": "node dist/main.js",
+  "test:db": "ts-node -r tsconfig-paths/register src/scripts/test-db-connection.ts"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",

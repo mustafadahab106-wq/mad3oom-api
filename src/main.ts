@@ -60,8 +60,9 @@ async function bootstrap() {
     }
     
     const app = await NestFactory.create(AppModule, {
-      logger: ['error', 'warn', 'log'], // ⚠️ إزالة 'verbose' لتقليل السجلات
-      abortOnError: false,
+     logger: ['error', 'warn', 'log', 'debug'],
+
+      abortOnError: true,
     });
 
     app.enableCors({
