@@ -5,7 +5,8 @@ import { Logger } from '@nestjs/common';
 async function testDatabaseConnection() {
   const { Client } = require('pg');
   const databaseUrl = process.env.DATABASE_URL;
-  
+  console.log("✅ LOADED APP MODULE: 2025-12-20 listings-enabled");
+
   if (!databaseUrl) {
     console.log('ℹ️ No DATABASE_URL, using SQLite');
     return true;
