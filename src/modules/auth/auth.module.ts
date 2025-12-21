@@ -14,14 +14,14 @@ import { UsersModule } from '../users/users.module';
   imports: [
     PassportModule,
     ConfigModule,
-    UsersModule, // ✅ إذا AuthService يعتمد على UsersService
+    UsersModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET || 'temporary-secret-key',
       signOptions: { expiresIn: '24h' },
     }),
   ],
-  controllers: [AuthController],               // ✅ مهم جدًا
-  providers: [AuthService, JwtStrategy, JwtAuthGuard], // ✅ أضف AuthService
+  controllers: [AuthController],
+  providers: [AuthService, JwtStrategy, JwtAuthGuard],
   exports: [JwtModule, JwtAuthGuard, AuthService],
 })
 export class AuthModule {}
