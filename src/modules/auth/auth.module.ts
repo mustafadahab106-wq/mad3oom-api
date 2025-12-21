@@ -5,6 +5,7 @@ import { ConfigModule } from '@nestjs/config';
 
 import { JwtStrategy } from './jwt.strategy';
 import { JwtAuthGuard } from './jwt-auth.guard';
+
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { UsersModule } from '../users/users.module';
@@ -13,14 +14,14 @@ import { UsersModule } from '../users/users.module';
   imports: [
     PassportModule,
     ConfigModule,
-    UsersModule, // ✅ مهم عشان UsersService
+    UsersModule, // ✅ إذا AuthService يعتمد على UsersService
     JwtModule.register({
       secret: process.env.JWT_SECRET || 'temporary-secret-key',
       signOptions: { expiresIn: '24h' },
     }),
   ],
-  controllers: [AuthController], // ✅ هذا كان ناقص
+  controllers: [AuthController],               // ✅ مهم جدًا
   providers: [AuthService, JwtStrategy, JwtAuthGuard], // ✅ أضف AuthService
-  exports: [JwtModule, JwtAuthGuard],
+  exports: [JwtModule, JwtAuthGuard, AuthService],
 })
 export class AuthModule {}
