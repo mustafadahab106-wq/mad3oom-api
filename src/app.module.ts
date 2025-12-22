@@ -7,7 +7,7 @@ import { AppService } from './app.service';
 
 // Modules
 import { AuthModule } from './modules/auth/auth.module';
-import { ListingsModule } from './modules/listings/listings.module'; // 🟢 تأكد من وجود هذا
+import { ListingsModule } from './modules/listings/listings.module';
 import { UsersModule } from './modules/users/users.module';
 import { MediaModule } from './modules/media/media.module';
 import { PaymentsModule } from './modules/payments/payments.module';
@@ -16,22 +16,26 @@ import { DeletionRequestsModule } from './modules/deletion-requests/deletion-req
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ 
+    ConfigModule.forRoot({
       isGlobal: true,
+      // Railway يحقن env من Variables، لكن وجود .env محلياً مفيد للتطوير
       envFilePath: '.env',
     }),
-    
+
     TypeOrmModule.forRoot({
-      type: 'sqlite',
-      database: 'database.sqlite',
+      type: 'postgres',
+      url: process.env.DATABASE_URL,
       autoLoadEntities: true,
-      synchronize: true,
-      logging: true,
+      synchronize: false,
+      ssl:
+        process.env.NODE_ENV === 'production'
+          ? { rejectUnauthorized: false }
+          : false,
     }),
 
     AuthModule,
     UsersModule,
-    ListingsModule, // 🟢 تأكد من وجود هذا السطر
+    ListingsModule,
     MediaModule,
     PaymentsModule,
     VinRecordsModule,

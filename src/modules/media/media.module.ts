@@ -3,6 +3,13 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Media } from './media.entity';
 import { MediaService } from './media.service';
 import { MediaController } from './media.controller';
+import { CloudinaryService } from './cloudinary.service';
+
+@Module({
+  providers: [CloudinaryService],
+  exports: [CloudinaryService],
+})
+
 
 @Module({
   imports: [TypeOrmModule.forFeature([Media])],

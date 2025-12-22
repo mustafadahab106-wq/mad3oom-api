@@ -1,12 +1,18 @@
 // src/modules/listings/entities/listing.entity.ts
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 @Entity('listings')
 export class Listing {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ nullable: true })
   title: string;
 
   @Column('text', { nullable: true })
@@ -15,7 +21,6 @@ export class Listing {
   @Column('decimal', { precision: 10, scale: 2, nullable: true })
   price: number;
 
-  // الحقول المطلوبة للخدمة:
   @Column({ nullable: true })
   make: string;
 
@@ -40,17 +45,19 @@ export class Listing {
   @Column({ default: false })
   isFeatured: boolean;
 
-  // ✅ SQLite compatible
-@Column({ type: 'datetime', nullable: true })
-auctionEnd: Date | null;
-
-
+  @Column({ type: 'datetime', nullable: true })
+  auctionEnd: Date | null;
 
   @Column({ default: 0 })
   views: number;
 
   @Column({ nullable: true })
   userId: number;
+
+  // ✅ الصور (متوافق مع SQLite/Postgres)
+  // نخزنها كنص JSON: '["url1","url2"]'
+  @Column('text', { nullable: true, default: '[]' })
+  images: string;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
