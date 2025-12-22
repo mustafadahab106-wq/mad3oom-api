@@ -1,14 +1,41 @@
-// src/modules/listings/listings.controller.ts
-import { Controller, Get, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  UseGuards,
+  UploadedFiles,
+  UseInterceptors,
+  Req,
+} from '@nestjs/common';
+import { FilesInterceptor } from '@nestjs/platform-express';
 import { ListingsService } from './listings.service';
-import { Listing } from './entities/listing.entity';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('listings')
 export class ListingsController {
   constructor(private readonly listingsService: ListingsService) {}
 
   @Get()
-  async getListings(@Query('section') section?: string): Promise<Listing[]> {
-    return this.listingsService.findAll({ section });
+  async getListings(@Req() req: any) {
+    return this.listingsService.findAll(req.query);
+  }
+
+  // ✅ هذا هو المهم
+  @UseGuards(JwtAuthGuard)
+  @Post()
+  @UseInterceptors(FilesInterceptor('images', 6))
+  async createListing(
+    @UploadedFiles() images: Express.Multer.File[],
+    @Body() body: any,
+    @Req() req: any,
+  ) {
+    const userId = req.user.sub; // من JWT
+
+    return this.listingsService.create({
+      ...body,
+      userId,
+      images: images?.map((f) => f.filename) || [],
+    });
   }
 }
