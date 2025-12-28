@@ -1,6 +1,5 @@
-// src/app.module.ts
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -18,19 +17,41 @@ import { DeletionRequestsModule } from './modules/deletion-requests/deletion-req
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      // Railway يحقن env من Variables، لكن وجود .env محلياً مفيد للتطوير
-      envFilePath: '.env',
     }),
 
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      url: process.env.DATABASE_URL,
-      autoLoadEntities: true,
-      synchronize: false,
-      ssl:
-        process.env.NODE_ENV === 'production'
-          ? { rejectUnauthorized: false }
-          : false,
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => {
+        const databaseUrl = configService.get<string>('DATABASE_URL');
+        
+        // إذا كان هناك DATABASE_URL (Railway) استخدم PostgreSQL
+        if (databaseUrl && databaseUrl.includes('postgres')) {
+  const isProd = configService.get('NODE_ENV') === 'production';
+
+  return {
+    type: 'postgres',
+    url: databaseUrl,
+    autoLoadEntities: true,
+    synchronize: !isProd,
+
+    // ✅ Local: بدون SSL  |  Production: SSL
+    ssl: isProd ? { rejectUnauthorized: false } : false,
+
+    logging: true,
+  };
+}
+
+        
+        // وإلا استخدم SQLite محلياً
+        return {
+          type: 'sqlite',
+          database: 'database.sqlite',
+          entities: [__dirname + '/../**/*.entity{.ts,.js}'],
+          synchronize: true,
+          logging: true,
+        };
+      },
+      inject: [ConfigService],
     }),
 
     AuthModule,

@@ -1,3 +1,4 @@
+// src/modules/media/entities/media.entity.ts
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
 
 @Entity('media')
@@ -6,23 +7,14 @@ export class Media {
   id: number;
 
   @Column()
-  filename: string;
-
-  @Column()
-  originalName: string;
-
-  @Column()
-  mimeType: string;
-
-  @Column()
-  size: number;
-
-  @Column()
-  path: string;
+  url: string;
 
   @Column({ nullable: true })
-  listingId: number;
+  type: string;
 
-  @CreateDateColumn()
+  @Column({ nullable: true })
+  userId: number;
+
+  @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 }

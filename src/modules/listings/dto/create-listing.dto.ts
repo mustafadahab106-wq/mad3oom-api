@@ -1,107 +1,44 @@
-import {
-  IsString,
-  IsNumber,
-  IsOptional,
-  IsArray,
-  IsBoolean,
-  Min,
-  Max,
-  IsPositive,
-} from 'class-validator';
+// src/modules/listings/dto/create-listing.dto.ts
+import { IsOptional, IsString, IsNumberString } from 'class-validator';
 
 export class CreateListingDto {
-  @IsString()
-  make: string;
+  @IsOptional() @IsString()
+  title?: string;
 
-  @IsString()
-  model: string;
-
-  @IsNumber()
-  @Min(1900)
-  @Max(new Date().getFullYear() + 1)
-  year: number;
-
-  @IsNumber()
-  @IsPositive()
-  price: number;
-
-  @IsString()
-  city: string;
-
-  @IsOptional()
-  @IsNumber()
-  @IsPositive()
-  mileage?: number;
-
-  @IsOptional()
-  @IsString()
-  damageType?: string;
-
-  @IsOptional()
-  @IsString()
+  @IsOptional() @IsString()
   description?: string;
 
-  @IsOptional()
-  @IsString()
+  @IsOptional() @IsNumberString()
+  price?: any;
+
+  @IsOptional() @IsString()
+  make?: string;
+
+  @IsOptional() @IsString()
+  model?: string;
+
+  @IsOptional() @IsNumberString()
+  year?: any;
+
+  @IsOptional() @IsNumberString()
+  mileage?: any;
+
+  @IsOptional() @IsString()
+  city?: string;
+
+  @IsOptional() @IsString()
+  damageType?: string;
+
+  @IsOptional() @IsString()
   legalStatus?: string;
 
-  @IsOptional()
-  @IsString()
+  @IsOptional() @IsString()
   vin?: string;
 
-  @IsOptional()
-  @IsString()
+  @IsOptional() @IsString()
   whatsapp?: string;
 
-  @IsArray()
+  // ✅ مهم: نخليها تقبل string[] أو string
   @IsOptional()
-  images?: string[];
-
-  @IsOptional()
-  @IsString()
-  transmission?: string;
-
-  @IsOptional()
-  @IsString()
-  fuelType?: string;
-
-  @IsOptional()
-  @IsString()
-  color?: string;
-
-  @IsOptional()
-  @IsString()
-  engineSize?: string;
-
-  @IsOptional()
-  @IsNumber()
-  doors?: number;
-
-  @IsOptional()
-  @IsNumber()
-  seats?: number;
-
-  @IsOptional()
-  @IsArray()
-  features?: string[];
-
-  @IsOptional()
-  @IsString()
-  insurance?: string;
-
-  @IsOptional()
-  @IsBoolean()
-  serviceHistory?: boolean;
-
-  @IsOptional()
-  @IsBoolean()
-  testDrive?: boolean;
-
-  @IsOptional()
-  @IsBoolean()
-  warranty?: boolean;
-
-  @IsOptional()
-  @IsString()
-  sellerName?: string;
+  images?: string[] | string;
 }

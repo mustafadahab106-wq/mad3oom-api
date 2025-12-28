@@ -12,7 +12,7 @@ export class Listing {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ nullable: true })
+  @Column()
   title: string;
 
   @Column('text', { nullable: true })
@@ -30,6 +30,11 @@ export class Listing {
   @Column('int', { nullable: true })
   year: number;
 
+  // ✅ أضف mileage لأنه موجود في الفورم والسيرفس
+  @Column('int', { nullable: true })
+userId: number;
+
+
   @Column({ nullable: true })
   city: string;
 
@@ -39,25 +44,33 @@ export class Listing {
   @Column({ nullable: true })
   legalStatus: string;
 
+  // ✅ أضف vin / whatsapp لأنك ترسلهم
+  @Column({ nullable: true })
+  vin: string;
+
+  @Column({ nullable: true })
+  whatsapp: string;
+
+  // ✅ images مخزنة كسلسلة JSON
+  @Column({ type: 'jsonb', default: () => "'[]'" })
+images: string[];
+
+
   @Column({ default: 'active' })
   status: string;
 
   @Column({ default: false })
   isFeatured: boolean;
 
-  @Column({ type: 'datetime', nullable: true })
-  auctionEnd: Date | null;
+  @Column({ type: 'timestamptz', nullable: true })
+auctionEnd: Date;
 
   @Column({ default: 0 })
   views: number;
 
-  @Column({ nullable: true })
-  userId: number;
-
-  // ✅ الصور (متوافق مع SQLite/Postgres)
-  // نخزنها كنص JSON: '["url1","url2"]'
-  @Column('text', { nullable: true, default: '[]' })
-  images: string;
+  // ✅ الأفضل تحديد النوع int
+  @Column('int', { nullable: true })
+  
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
