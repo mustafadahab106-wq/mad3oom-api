@@ -1,3 +1,4 @@
+// src/app.controller.ts
 import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
 import { DataSource } from 'typeorm';
@@ -6,7 +7,7 @@ import { DataSource } from 'typeorm';
 export class AppController {
   constructor(
     private readonly appService: AppService,
-    private readonly dataSource: DataSource, // 🔴 أضف هذا
+    private readonly dataSource: DataSource,
   ) {}
 
   @Get()
@@ -17,13 +18,16 @@ export class AppController {
   @Get('health')
   async healthCheck() {
     try {
-      // 🔴 اختبر اتصال قاعدة البيانات
+      // اختبر اتصال قاعدة البيانات
       await this.dataSource.query('SELECT 1');
+      
+      // احصل على معلومات قاعدة البيانات
+      const dbInfo = await this.appService.getDbInfo();
       
       return { 
         status: 'ok', 
         database: 'connected',
-        timestamp: new Date().toISOString(),
+        ...dbInfo,
         service: 'mad3oom-api',
         version: '1.0.0'
       };
@@ -45,5 +49,15 @@ export class AppController {
       time: new Date().toISOString(),
       uptime: process.uptime()
     };
+  }
+
+  @Get('db-info')
+  async getDbInfo() {
+    return this.appService.getDbInfo();
+  }
+
+  @Get('postgres-test')
+  async testPostgres() {
+    return this.appService.testPostgresConnection();
   }
 }

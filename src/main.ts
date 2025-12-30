@@ -8,25 +8,34 @@ import { join } from 'path';
 async function testDatabaseConnection(logger: Logger) {
   const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) {
-    logger.warn('DATABASE_URL is not set (Postgres). App may fail if DB is required.');
+    logger.warn('DATABASE_URL is not set. Using SQLite for local development.');
     return false;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const { Client } = require('pg');
-
-  const client = new Client({
-    connectionString: databaseUrl,
-    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : undefined,
-  });
-
   try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { Client } = require('pg');
+    
+    // تعديل الرابط لإضافة sslmode إذا لم يكن موجوداً
+    let connectionString = databaseUrl;
+    if (!connectionString.includes('sslmode=')) {
+      connectionString += '?sslmode=require';
+    }
+    
+    const client = new Client({
+      connectionString: connectionString,
+      ssl: {
+        rejectUnauthorized: false
+      }
+    });
+    
     await client.connect();
-    logger.log('✅ Database connection successful');
+    logger.log('✅ PostgreSQL connection successful on Railway');
     await client.end();
     return true;
   } catch (error: any) {
-    logger.error(`❌ Database connection failed: ${error?.message || error}`);
+    logger.error(`❌ PostgreSQL connection failed: ${error?.message || error}`);
+    logger.error('Tip: Railway requires sslmode=require in DATABASE_URL');
     return false;
   }
 }
@@ -35,59 +44,49 @@ async function bootstrap() {
   const logger = new Logger('Bootstrap');
 
   try {
-    logger.log('🚀 Starting application...');
-    logger.log(`NODE_ENV=${process.env.NODE_ENV || 'undefined'}`);
-
-    // اختياري: فحص اتصال قاعدة البيانات (مفيد جداً على Railway)
+    logger.log('🚀 Starting Mad3oom API on Railway...');
+    logger.log(`NODE_ENV: ${process.env.NODE_ENV || 'production'}`);
+    logger.log(`PORT: ${process.env.PORT || '8080'}`);
+    
+    // تحقق من اتصال PostgreSQL
     await testDatabaseConnection(logger);
-
+    
     const app = await NestFactory.create<NestExpressApplication>(AppModule, {
       logger: ['error', 'warn', 'log', 'debug'],
-      abortOnError: false,
     });
 
+    // تمكين CORS
     app.enableCors({
       origin: '*',
       methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
       credentials: true,
     });
 
-    // ✅ (5) Static serve للـ uploads
+    // Static files
     app.useStaticAssets(join(process.cwd(), 'uploads'), { prefix: '/uploads' });
 
-    // ✅ (4) Swagger بعد إنشاء app
+    // Swagger
     const swaggerConfig = new DocumentBuilder()
       .setTitle('Mad3oom API')
-      .setDescription('API documentation')
+      .setDescription('Car Auction Platform API')
       .setVersion('1.0')
-      .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'JWT')
+      .addBearerAuth()
       .build();
 
     const document = SwaggerModule.createDocument(app, swaggerConfig);
     SwaggerModule.setup('docs', app, document);
 
-    const port = Number(process.env.PORT) || 3000;
+    const port = process.env.PORT || 8080;
     await app.listen(port, '0.0.0.0');
 
-    // اطبع الراوتس فقط خارج production
-    if (process.env.NODE_ENV !== 'production') {
-      const server = app.getHttpAdapter().getInstance();
-      const stack = server?._router?.stack || [];
-      const routes = stack
-        .filter((l: any) => l.route)
-        .map((l: any) => {
-          const methods = Object.keys(l.route.methods || {}).join(',').toUpperCase();
-          return `${methods} ${l.route.path}`;
-        });
-
-      logger.log(`🧭 ROUTES (${routes.length}):`);
-      routes.forEach((r: string) => logger.log(r));
-    }
-
-    logger.log(`✅ Application is running on: http://0.0.0.0:${port}`);
-    logger.log(`📚 Swagger is running on: http://0.0.0.0:${port}/docs`);
+    logger.log(`✅ Mad3oom API is running on Railway: http://0.0.0.0:${port}`);
+    logger.log(`📚 API Documentation: http://0.0.0.0:${port}/docs`);
+    logger.log(`🏥 Health Check: http://0.0.0.0:${port}/health`);
+    logger.log(`ℹ️  Database Info: http://0.0.0.0:${port}/db-info`);
+    
   } catch (error: any) {
     logger.error(`❌ Failed to start application: ${error?.message || error}`);
+    logger.error('Stack trace:', error.stack);
     process.exit(1);
   }
 }

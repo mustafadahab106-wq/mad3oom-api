@@ -1,3 +1,4 @@
+// src/modules/listings/listings.service.ts
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -12,16 +13,33 @@ export class ListingsService {
     private repo: Repository<Listing>,
   ) {}
 
-  async findAll(filters?: any): Promise<Listing[]> {
+  private getSingleListing(saved: Listing | Listing[]): Listing {
+    return Array.isArray(saved) ? saved[0] : saved;
+  }
+
+  private parseImages(images: any): string[] {
+    if (!images) return [];
+    if (Array.isArray(images)) return images;
+    if (typeof images === 'string') {
+      try {
+        const parsed = JSON.parse(images);
+        return Array.isArray(parsed) ? parsed : [parsed];
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  }
+
+  async findAll(filters?: any): Promise<any[]> {
     const listings = await this.repo.find({
       order: { createdAt: 'DESC' },
       take: 100,
     });
 
-    // images أصبحت jsonb array، ما نحتاج parse
     return listings.map((l) => ({
       ...l,
-      images: l.images ?? [],
+      images: this.parseImages(l.images),
     }));
   }
 
@@ -46,15 +64,16 @@ export class ListingsService {
       ...(createListingDto as any),
       title: computedTitle,
       userId,
-      images: imagesArr, // ✅ jsonb array
+      images: JSON.stringify(imagesArr), // تخزين كـ JSON string
     });
 
     const saved = await this.repo.save(listing);
+    const savedListing = this.getSingleListing(saved);
 
     return {
       data: {
-        ...saved,
-        images: saved.images ?? [],
+        ...savedListing,
+        images: this.parseImages(savedListing.images),
       },
     };
   }
@@ -66,12 +85,11 @@ export class ListingsService {
     return {
       data: {
         ...listing,
-        images: listing.images ?? [],
+        images: this.parseImages(listing.images),
       },
     };
   }
 
-  // ✅ (1) حماية التعديل: فقط صاحب الإعلان
   async update(id: number, dto: UpdateListingDto, userId: number) {
     const listing = await this.repo.findOne({ where: { id } });
     if (!listing) throw new NotFoundException(`Listing #${id} not found`);
@@ -85,20 +103,21 @@ export class ListingsService {
 
     if (images !== undefined) {
       const imagesArr = Array.isArray(images) ? images : [images];
-      listing.images = imagesArr; // ✅ array مباشرة
+      // 🔴 الحل: استخدم type assertion
+      (listing as any).images = JSON.stringify(imagesArr);
     }
 
     const saved = await this.repo.save(listing);
+    const savedListing = this.getSingleListing(saved);
 
     return {
       data: {
-        ...saved,
-        images: saved.images ?? [],
+        ...savedListing,
+        images: this.parseImages(savedListing.images),
       },
     };
   }
 
-  // ✅ (1) حماية الحذف: فقط صاحب الإعلان
   async remove(id: number, userId: number) {
     const listing = await this.repo.findOne({ where: { id } });
     if (!listing) throw new NotFoundException(`Listing #${id} not found`);
@@ -119,7 +138,7 @@ export class ListingsService {
 
     return listings.map((l) => ({
       ...l,
-      images: l.images ?? [],
+      images: this.parseImages(l.images),
     }));
   }
 }
