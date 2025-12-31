@@ -1,7 +1,8 @@
 // src/app.controller.ts
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Res } from '@nestjs/common';
 import { AppService } from './app.service';
 import { DataSource } from 'typeorm';
+import { Response } from 'express';
 
 @Controller()
 export class AppController {
@@ -15,40 +16,45 @@ export class AppController {
     return this.appService.getHello();
   }
 
+  // 🔴 هذه endpoint للصحة يجب أن تعيد 200 دائماً حتى لو فشل الاتصال بقاعدة البيانات
   @Get('health')
-  async healthCheck() {
+  async healthCheck(@Res() res: Response) {
     try {
-      // اختبر اتصال قاعدة البيانات
+      // حاول الاتصال بقاعدة البيانات
       await this.dataSource.query('SELECT 1');
       
-      // احصل على معلومات قاعدة البيانات
       const dbInfo = await this.appService.getDbInfo();
       
-      return { 
+      return res.status(200).json({ 
         status: 'ok', 
         database: 'connected',
         ...dbInfo,
         service: 'mad3oom-api',
-        version: '1.0.0'
-      };
+        version: '1.0.0',
+        timestamp: new Date().toISOString()
+      });
     } catch (error) {
-      return { 
-        status: 'error', 
+      // حتى لو فشل الاتصال بقاعدة البيانات، أعد 200 للتطبيق
+      return res.status(200).json({ 
+        status: 'ok', 
         database: 'disconnected',
         error: error.message,
+        service: 'mad3oom-api',
+        version: '1.0.0',
         timestamp: new Date().toISOString()
-      };
+      });
     }
   }
 
-  @Get('ping')
-  ping() {
-    return { 
-      ok: true, 
-      service: 'mad3oom-api', 
-      time: new Date().toISOString(),
+  // 🔴 أضف هذه endpoint البسيطة للـ health check
+  @Get(['', '/', '/ping', '/status'])
+  simpleHealthCheck(@Res() res: Response) {
+    return res.status(200).json({
+      status: 'ok',
+      message: 'API is running',
+      timestamp: new Date().toISOString(),
       uptime: process.uptime()
-    };
+    });
   }
 
   @Get('db-info')

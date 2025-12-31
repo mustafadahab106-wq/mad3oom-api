@@ -23,7 +23,16 @@ export class AppService {
       timestamp: new Date().toISOString(),
     };
   }
-
+// في app.service.ts
+getHealthStatus() {
+  return {
+    status: 'ok',
+    message: 'API is healthy',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    database: this.dataSource.isInitialized ? 'connected' : 'disconnected'
+  };
+}
   // دالة إضافية للتحقق من قاعدة البيانات
   async getDbInfo() {
     try {

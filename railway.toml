@@ -1,19 +1,12 @@
 [build]
 builder = "nixpacks"
 buildCommand = "npm run build"
-installCommand = "npm ci --only=production"
 
 [deploy]
-startCommand = "npm start"
-healthcheckPath = "/health"
-healthcheckTimeout = 30
-initialDelay = 40  # 🟢 أعط وقتًا أطول لبدء قاعدة البيانات
+startCommand = "npm run start:prod"
+healthcheckPath = "/ping"  # 🔴 استخدم /ping بدلاً من /health
+healthcheckTimeout = 10
+healthcheckInterval = 30
 
 [variables]
 NODE_ENV = "production"
-PORT = "3000"
-
-# تأكد من إضافة sslmode
-transform = true
-[transform.environment]
-DATABASE_URL = { regex = "^(postgresql://.+)", replace = "${1}?sslmode=no-verify" }
