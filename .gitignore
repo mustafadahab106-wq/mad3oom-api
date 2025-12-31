@@ -1,5 +1,30 @@
-node_modules
-dist
-tsconfig.tsbuildinfo
+# dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# production
+dist/
+build/
+
+# environment variables
 .env
+.env.local
+
+# database
 *.sqlite
+database.sqlite
+
+# uploads
+uploads/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
