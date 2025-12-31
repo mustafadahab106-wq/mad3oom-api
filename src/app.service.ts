@@ -6,6 +6,44 @@ import { DataSource } from 'typeorm';
 export class AppService {
   constructor(private dataSource: DataSource) {}
 
+  getDatabaseDiagnostics() {
+    const dbType = this.dataSource.driver.options.type;
+    const isInitialized = this.dataSource.isInitialized;
+    const connection = this.dataSource;
+    
+    console.log('=== DATABASE DIAGNOSTICS ===');
+    console.log('Driver type:', dbType);
+    console.log('Is initialized:', isInitialized);
+    console.log('DATABASE_URL in env:', !!process.env.DATABASE_URL);
+    
+    // معالجة خاصة بناءً على نوع قاعدة البيانات
+    let connectionOptions: any = {
+      type: connection.options.type,
+      database: connection.options.database,
+    };
+    
+    // فقط أضف host و port إذا كانت قاعدة البيانات تدعمها (PostgreSQL)
+    if (dbType === 'postgres') {
+      const pgOptions = connection.options as any;
+      connectionOptions.host = pgOptions.host || pgOptions.url?.hostname || 'unknown';
+      connectionOptions.port = pgOptions.port || pgOptions.url?.port || 'unknown';
+    } else if (dbType === 'sqlite') {
+      // SQLite لا يحتوي على host و port
+      connectionOptions.host = 'N/A (SQLite)';
+      connectionOptions.port = 'N/A (SQLite)';
+    }
+    
+    console.log('Connection options:', connectionOptions);
+    
+    return {
+      driver_type: dbType,
+      is_initialized: isInitialized,
+      has_database_url: !!process.env.DATABASE_URL,
+      connection_options: connectionOptions,
+      timestamp: new Date().toISOString(),
+    };
+  }
+
   getHello(): any {
     const dbType = this.dataSource.driver.options.type;
     const isConnected = this.dataSource.isInitialized;
@@ -23,16 +61,17 @@ export class AppService {
       timestamp: new Date().toISOString(),
     };
   }
-// في app.service.ts
-getHealthStatus() {
-  return {
-    status: 'ok',
-    message: 'API is healthy',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    database: this.dataSource.isInitialized ? 'connected' : 'disconnected'
-  };
-}
+
+  getHealthStatus() {
+    return {
+      status: 'ok',
+      message: 'API is healthy',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      database: this.dataSource.isInitialized ? 'connected' : 'disconnected'
+    };
+  }
+
   // دالة إضافية للتحقق من قاعدة البيانات
   async getDbInfo() {
     try {

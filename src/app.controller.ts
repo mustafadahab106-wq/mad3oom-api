@@ -1,8 +1,7 @@
-// src/app.controller.ts
-import { Controller, Get, Res } from '@nestjs/common';
+// app.controller.ts بعد التعديل
+import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
 import { DataSource } from 'typeorm';
-import { Response } from 'express';
 
 @Controller()
 export class AppController {
@@ -16,45 +15,37 @@ export class AppController {
     return this.appService.getHello();
   }
 
-  // 🔴 هذه endpoint للصحة يجب أن تعيد 200 دائماً حتى لو فشل الاتصال بقاعدة البيانات
   @Get('health')
-  async healthCheck(@Res() res: Response) {
+  async healthCheck() {
     try {
-      // حاول الاتصال بقاعدة البيانات
       await this.dataSource.query('SELECT 1');
-      
       const dbInfo = await this.appService.getDbInfo();
       
-      return res.status(200).json({ 
+      return { 
         status: 'ok', 
         database: 'connected',
         ...dbInfo,
         service: 'mad3oom-api',
-        version: '1.0.0',
-        timestamp: new Date().toISOString()
-      });
+        version: '1.0.0'
+      };
     } catch (error) {
-      // حتى لو فشل الاتصال بقاعدة البيانات، أعد 200 للتطبيق
-      return res.status(200).json({ 
-        status: 'ok', 
+      return { 
+        status: 'error', 
         database: 'disconnected',
         error: error.message,
-        service: 'mad3oom-api',
-        version: '1.0.0',
         timestamp: new Date().toISOString()
-      });
+      };
     }
   }
 
-  // 🔴 أضف هذه endpoint البسيطة للـ health check
-  @Get(['', '/', '/ping', '/status'])
-  simpleHealthCheck(@Res() res: Response) {
-    return res.status(200).json({
-      status: 'ok',
-      message: 'API is running',
-      timestamp: new Date().toISOString(),
+  @Get('ping')
+  ping() {
+    return { 
+      ok: true, 
+      service: 'mad3oom-api', 
+      time: new Date().toISOString(),
       uptime: process.uptime()
-    });
+    };
   }
 
   @Get('db-info')
@@ -65,5 +56,15 @@ export class AppController {
   @Get('postgres-test')
   async testPostgres() {
     return this.appService.testPostgresConnection();
+  }
+
+  @Get('diagnostics')
+  getDiagnostics() {
+    return this.appService.getDatabaseDiagnostics();
+  }
+
+  @Get('simple-health')
+  simpleHealth() {
+    return this.appService.getHealthStatus();
   }
 }
