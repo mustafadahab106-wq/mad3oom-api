@@ -1,4 +1,4 @@
-// app.controller.ts بعد التعديل
+// src/app.controller.ts
 import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
 import { DataSource } from 'typeorm';
@@ -66,5 +66,31 @@ export class AppController {
   @Get('simple-health')
   simpleHealth() {
     return this.appService.getHealthStatus();
+  }
+
+  @Get('routes')
+  getRoutes() {
+    return {
+      routes: [
+        'GET /',
+        'GET /health',
+        'GET /ping',
+        'GET /db-info',
+        'GET /postgres-test',
+        'GET /diagnostics',
+        'GET /simple-health',
+        'GET /listings',
+        'POST /listings',
+        'GET /auth/register',
+        'POST /auth/login',
+        'GET /users',
+        'POST /users',
+        'GET /media',
+        'GET /payments',
+        'GET /vin-records/search',
+        'GET /deletion-requests',
+        'GET /docs'
+      ]
+    };
   }
 }
