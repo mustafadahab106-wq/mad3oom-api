@@ -25,8 +25,10 @@ export class AppService {
     // فقط أضف host و port إذا كانت قاعدة البيانات تدعمها (PostgreSQL)
     if (dbType === 'postgres') {
       const pgOptions = connection.options as any;
-      connectionOptions.host = pgOptions.host || pgOptions.url?.hostname || 'unknown';
-      connectionOptions.port = pgOptions.port || pgOptions.url?.port || 'unknown';
+      connectionOptions.host =
+        pgOptions.host || pgOptions.url?.hostname || 'unknown';
+      connectionOptions.port =
+        pgOptions.port || pgOptions.url?.port || 'unknown';
     } else if (dbType === 'sqlite') {
       // SQLite لا يحتوي على host و port
       connectionOptions.host = 'N/A (SQLite)';
@@ -68,7 +70,9 @@ export class AppService {
       message: 'API is healthy',
       timestamp: new Date().toISOString(),
       uptime: process.uptime(),
-      database: this.dataSource.isInitialized ? 'connected' : 'disconnected'
+      database: this.dataSource.isInitialized
+        ? 'connected'
+        : 'disconnected'
     };
   }
 
@@ -80,13 +84,17 @@ export class AppService {
       
       // حاول الحصول على إصدار قاعدة البيانات
       let dbVersion = 'unknown';
+
       if (isConnected) {
         if (dbType === 'postgres') {
           const result = await this.dataSource.query('SELECT version();');
           dbVersion = result[0]?.version || 'unknown';
         } else if (dbType === 'sqlite') {
-          const result = await this.dataSource.query('SELECT sqlite_version();');
-          dbVersion = result[0]?.['sqlite_version()'] || 'unknown';
+          const result = await this.dataSource.query(
+            'SELECT sqlite_version();'
+          );
+          dbVersion =
+            result[0]?.['sqlite_version()'] || 'unknown';
         }
       }
       
@@ -113,6 +121,7 @@ export class AppService {
     try {
       // اختبار اتصال PostgreSQL
       const result = await this.dataSource.query('SELECT 1 as test');
+
       return {
         success: true,
         message: 'PostgreSQL connection successful',
@@ -127,4 +136,4 @@ export class AppService {
       };
     }
   }
-}
+            }
