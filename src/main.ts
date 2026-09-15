@@ -1,14 +1,17 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { Logger } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
 
 async function testDatabaseConnection(logger: Logger) {
   const databaseUrl = process.env.DATABASE_URL;
+
   if (!databaseUrl) {
-    logger.warn('DATABASE_URL is not set. Using SQLite for local development.');
+    logger.warn(
+      'DATABASE_URL is not set. Using SQLite for local development.'
+    );
     return false;
   }
 
@@ -18,6 +21,7 @@ async function testDatabaseConnection(logger: Logger) {
     
     // تعديل الرابط لإضافة sslmode إذا لم يكن موجوداً
     let connectionString = databaseUrl;
+
     if (!connectionString.includes('sslmode=')) {
       connectionString += '?sslmode=require';
     }
@@ -30,12 +34,23 @@ async function testDatabaseConnection(logger: Logger) {
     });
     
     await client.connect();
-    logger.log('✅ PostgreSQL connection successful on Railway');
+
+    logger.log(
+      '✅ PostgreSQL connection successful on Railway'
+    );
+
     await client.end();
+
     return true;
   } catch (error: any) {
-    logger.error(`❌ PostgreSQL connection failed: ${error?.message || error}`);
-    logger.error('Tip: Railway requires sslmode=require in DATABASE_URL');
+    logger.error(
+      `❌ PostgreSQL connection failed: ${error?.message || error}`
+    );
+
+    logger.error(
+      'Tip: Railway requires sslmode=require in DATABASE_URL'
+    );
+
     return false;
   }
 }
@@ -45,15 +60,23 @@ async function bootstrap() {
 
   try {
     logger.log('🚀 Starting Mad3oom API on Railway...');
-    logger.log(`NODE_ENV: ${process.env.NODE_ENV || 'production'}`);
-    logger.log(`PORT: ${process.env.PORT || '8080'}`);
+    logger.log(
+      `NODE_ENV: ${process.env.NODE_ENV || 'production'}`
+    );
+    logger.log(
+      `PORT: ${process.env.PORT || '8080'}`
+    );
     
     // تحقق من اتصال PostgreSQL
     await testDatabaseConnection(logger);
     
-    const app = await NestFactory.create<NestExpressApplication>(AppModule, {
-      logger: ['error', 'warn', 'log', 'debug'],
-    });
+    const app =
+      await NestFactory.create<NestExpressApplication>(
+        AppModule,
+        {
+          logger: ['error', 'warn', 'log', 'debug'],
+        },
+      );
 
     // تمكين CORS
     app.enableCors({
@@ -62,8 +85,20 @@ async function bootstrap() {
       credentials: true,
     });
 
+    app.useGlobalPipes(
+      new ValidationPipe({
+        transform: true,
+        whitelist: true
+      }),
+    );
+
     // Static files
-    app.useStaticAssets(join(process.cwd(), 'uploads'), { prefix: '/uploads' });
+    app.useStaticAssets(
+      join(process.cwd(), 'uploads'),
+      {
+        prefix: '/uploads'
+      }
+    );
 
     // Swagger
     const swaggerConfig = new DocumentBuilder()
@@ -73,20 +108,48 @@ async function bootstrap() {
       .addBearerAuth()
       .build();
 
-    const document = SwaggerModule.createDocument(app, swaggerConfig);
-    SwaggerModule.setup('docs', app, document);
+    const document =
+      SwaggerModule.createDocument(
+        app,
+        swaggerConfig
+      );
+
+    SwaggerModule.setup(
+      'docs',
+      app,
+      document
+    );
 
     const port = process.env.PORT || 8080;
+
     await app.listen(port, '0.0.0.0');
 
-    logger.log(`✅ Mad3oom API is running on Railway: http://0.0.0.0:${port}`);
-    logger.log(`📚 API Documentation: http://0.0.0.0:${port}/docs`);
-    logger.log(`🏥 Health Check: http://0.0.0.0:${port}/health`);
-    logger.log(`ℹ️  Database Info: http://0.0.0.0:${port}/db-info`);
+    logger.log(
+      `✅ Mad3oom API is running on Railway: http://0.0.0.0:${port}`
+    );
+
+    logger.log(
+      `📚 API Documentation: http://0.0.0.0:${port}/docs`
+    );
+
+    logger.log(
+      `🏥 Health Check: http://0.0.0.0:${port}/health`
+    );
+
+    logger.log(
+      `ℹ️  Database Info: http://0.0.0.0:${port}/db-info`
+    );
     
   } catch (error: any) {
-    logger.error(`❌ Failed to start application: ${error?.message || error}`);
-    logger.error('Stack trace:', error.stack);
+    logger.error(
+      `❌ Failed to start application: ${error?.message || error}`
+    );
+
+    logger.error(
+      'Stack trace:',
+      error.stack
+    );
+
     process.exit(1);
   }
 }
