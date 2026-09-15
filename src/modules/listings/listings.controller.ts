@@ -17,11 +17,15 @@ import { ListingsService } from './listings.service';
 import { UpdateListingDto } from './dto/update-listing.dto';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { CloudinaryService } from '../media/cloudinary.service';
 
 
 @Controller('listings')
 export class ListingsController {
-  constructor(private readonly listingsService: ListingsService) {}
+  constructor(
+    private readonly listingsService: ListingsService,
+    private readonly cloudinaryService: CloudinaryService,
+  ) {}
 
   @Get()
   async findAll(@Query() query: any) {
@@ -52,7 +56,14 @@ export class ListingsController {
     const userId = Number(req.user?.userId);
     if (!userId) throw new UnauthorizedException('Invalid token payload');
 
-    const uploadedUrls = files?.map((f) => `/uploads/${f.filename}`) || [];
+    const uploadedUrls = files?.length
+      ? await Promise.all(
+          files.map(async (f) => {
+            const result = await this.cloudinaryService.uploadBuffer(f.buffer);
+            return result.secure_url;
+          }),
+        )
+      : [];
 
     const bodyImages = createListingDto.images
       ? Array.isArray(createListingDto.images)
