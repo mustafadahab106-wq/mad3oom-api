@@ -141,4 +141,12 @@ export class ListingsService {
       images: this.parseImages(l.images),
     }));
   }
+
+  async setFeatured(id: number, isFeatured: boolean) {
+    const listing = await this.repo.findOne({ where: { id } });
+    if (!listing) throw new NotFoundException(`Listing #${id} not found`);
+    listing.isFeatured = isFeatured;
+    const saved = await this.repo.save(listing);
+    return { ...saved, images: this.parseImages(saved.images) };
+  }
 }
