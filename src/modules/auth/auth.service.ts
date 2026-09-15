@@ -37,7 +37,7 @@ export class AuthService {
 
     return {
       token,
-      user: { id: user.id, email: user.email, name: user.name ?? null },
+      user: { id: user.id, email: user.email, name: user.name ?? null, isAdmin: !!user.isAdmin },
     };
   }
 
@@ -65,7 +65,7 @@ export class AuthService {
 
     return {
       token,
-      user: { id: user.id, email: user.email, name: user.name ?? null },
+      user: { id: user.id, email: user.email, name: user.name ?? null, isAdmin: !!user.isAdmin },
     };
   }
-}
+  }
