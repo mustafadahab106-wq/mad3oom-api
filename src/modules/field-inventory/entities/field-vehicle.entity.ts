@@ -127,4 +127,4 @@ export class FieldVehicle {
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
-  }
+}
