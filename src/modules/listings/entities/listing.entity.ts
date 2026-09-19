@@ -58,6 +58,9 @@ export class Listing {
   isFeatured: boolean;
 
   @Column({ type: 'timestamptz', nullable: true })
+  featuredUntil: Date;
+
+  @Column({ type: 'timestamptz', nullable: true })
   auctionEnd: Date;
 
   @Column({ default: 0 })
