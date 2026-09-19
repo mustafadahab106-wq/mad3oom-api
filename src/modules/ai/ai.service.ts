@@ -88,10 +88,7 @@ export class AiService {
   }
 
   // ---------- ميزة 2: مساعد البائع (Complete with AI) ----------
-  async completeListing(
-    dto: CompleteListingDto,
-    files: Array<{ buffer: Buffer; mimetype: string }>,
-  ) {
+  async completeListing(dto: CompleteListingDto, files: Array<{ buffer: Buffer; mimetype: string }>) {
     if (!files?.length) {
       throw new BadRequestException('At least one photo is required');
     }
@@ -112,14 +109,8 @@ export class AiService {
         (!dto.make || String(l.make).toLowerCase() === dto.make.toLowerCase()) &&
         (!dto.model || String(l.model).toLowerCase() === dto.model.toLowerCase()),
     );
-
     const avgPrice = similar.length
-      ? Math.round(
-          similar.reduce(
-            (s: number, l: any) => s + Number(l.price || 0),
-            0,
-          ) / similar.length,
-        )
+      ? Math.round(similar.reduce((s: number, l: any) => s + Number(l.price || 0), 0) / similar.length)
       : null;
 
     const system = [
@@ -173,9 +164,45 @@ export class AiService {
       const parsed = JSON.parse(cleaned);
       return { ...parsed, comparableAveragePriceAED: avgPrice };
     } catch {
-      throw new InternalServerErrorException(
-        'AI response could not be parsed',
-      );
+      throw new InternalServerErrorException('AI response could not be parsed');
     }
   }
-      }
+
+  // ---------- ميزة 3: صوت المساعد (ElevenLabs) ----------
+  async speak(text: string): Promise<Buffer> {
+    const key = process.env.ELEVENLABS_API_KEY;
+    if (!key) {
+      throw new InternalServerErrorException(
+        'Voice assistant is not configured (missing ELEVENLABS_API_KEY)',
+      );
+    }
+    const voiceId = process.env.ELEVENLABS_VOICE_ID || '21m00Tcm4TlvDq8ikWAM';
+
+    const res = await fetch(
+      `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
+      {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          accept: 'audio/mpeg',
+          'xi-api-key': key,
+        },
+        body: JSON.stringify({
+          text: text.slice(0, 800),
+          model_id: 'eleven_flash_v2_5',
+          voice_settings: { stability: 0.5, similarity_boost: 0.75 },
+        }),
+      },
+    );
+
+    if (!res.ok) {
+      const errText = await res.text().catch(() => '');
+      throw new InternalServerErrorException(
+        `Voice provider error (${res.status}): ${errText.slice(0, 300)}`,
+      );
+    }
+
+    const arrayBuffer = await res.arrayBuffer();
+    return Buffer.from(arrayBuffer);
+  }
+}
