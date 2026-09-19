@@ -1,18 +1,14 @@
-import { IsNumber, IsPositive, IsString, IsOptional, IsIn } from 'class-validator';
+import { IsNumber, IsString, IsIn } from 'class-validator';
 
 export class CreatePaymentDto {
   @IsNumber()
   listingId: number;
 
-  @IsNumber()
-  @IsPositive()
-  amount: number;
+  @IsString()
+  @IsIn(['featured_7d', 'golden_30d'])
+  planId: string;
 
   @IsString()
-  @IsIn(['bank_transfer', 'cash', 'card'])
+  @IsIn(['card', 'bank_transfer', 'cash'])
   paymentMethod: string;
-
-  @IsOptional()
-  @IsString()
-  transactionId?: string;
 }
