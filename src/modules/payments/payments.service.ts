@@ -1,9 +1,17 @@
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  BadRequestException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Payment } from './payment.entity';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { ListingsService } from '../listings/listings.service';
+import { getPackage, PACKAGES } from './packages';
+import { createCheckoutSession } from './stripe.helper';
 
 @Injectable()
 export class PaymentsService {
@@ -12,6 +20,10 @@ export class PaymentsService {
     private paymentRepository: Repository<Payment>,
     private readonly listingsService: ListingsService,
   ) {}
+
+  getPackages() {
+    return PACKAGES;
+  }
 
   async findAll() {
     return this.paymentRepository.find({ order: { createdAt: 'DESC' } });
@@ -24,36 +36,70 @@ export class PaymentsService {
     });
   }
 
-  async create(dto: CreatePaymentDto, userId: number) {
-    const listingResult: any = await this.listingsService.findOne(dto.listingId);
+  private async assertOwnsListing(listingId: number, userId: number) {
+    const listingResult: any = await this.listingsService.findOne(listingId);
     const listing = listingResult?.data ?? listingResult;
-
     if (!listing) throw new NotFoundException('Listing not found');
     if (listing.userId !== userId) {
       throw new ForbiddenException('You can only request featuring for your own listing');
     }
-
-    const payment = this.paymentRepository.create({
-      ...dto,
-      userId,
-      status: 'pending',
-    });
-
-    return this.paymentRepository.save(payment);
+    return listing;
   }
 
+  async create(dto: CreatePaymentDto, userId: number) {
+    await this.assertOwnsListing(dto.listingId, userId);
+    const pkg = getPackage(dto.planId);
+
+    const payment = await this.paymentRepository.save(
+      this.paymentRepository.create({
+        listingId: dto.listingId,
+        userId,
+        amount: pkg.priceAED,
+        paymentMethod: dto.paymentMethod,
+        plan: pkg.id,
+        status: 'pending',
+      }),
+    );
+
+    if (dto.paymentMethod === 'card') {
+      const secretKey = process.env.STRIPE_SECRET_KEY;
+      if (!secretKey) {
+        throw new InternalServerErrorException('Card payment is not configured yet');
+      }
+      const baseUrl = process.env.FRONTEND_URL || 'https://mad3oom.com';
+      const session = await createCheckoutSession({
+        secretKey,
+        priceAED: pkg.priceAED,
+        productName: pkg.nameEn,
+        successUrl: `${baseUrl}/profile/?payment=success`,
+        cancelUrl: `${baseUrl}/profile/?payment=cancelled`,
+        metadata: { paymentId: String(payment.id) },
+      });
+      payment.transactionId = session.id;
+      await this.paymentRepository.save(payment);
+      return { ...payment, checkoutUrl: session.url };
+    }
+
+    return payment;
+  }
+
+  private async markApproved(payment: Payment) {
+    const pkg = getPackage(payment.plan);
+    payment.status = 'approved';
+    await this.paymentRepository.save(payment);
+    const featuredUntil = new Date(Date.now() + pkg.days * 24 * 60 * 60 * 1000);
+    await this.listingsService.setFeatured(payment.listingId, featuredUntil);
+    return payment;
+  }
+
+  // موافقة يدوية (تحويل بنكي / كاش) من الأدمن
   async approve(id: number) {
     const payment = await this.paymentRepository.findOne({ where: { id } });
     if (!payment) throw new NotFoundException(`Payment #${id} not found`);
     if (payment.status !== 'pending') {
       throw new BadRequestException(`Payment already ${payment.status}`);
     }
-
-    payment.status = 'approved';
-    await this.paymentRepository.save(payment);
-    await this.listingsService.setFeatured(payment.listingId, true);
-
-    return payment;
+    return this.markApproved(payment);
   }
 
   async reject(id: number) {
@@ -62,8 +108,14 @@ export class PaymentsService {
     if (payment.status !== 'pending') {
       throw new BadRequestException(`Payment already ${payment.status}`);
     }
-
     payment.status = 'rejected';
     return this.paymentRepository.save(payment);
   }
-      }
+
+  // يُستدعى من ويبهوك Stripe بعد التحقق من التوقيع بالكونترولر
+  async handleStripeCheckoutCompleted(paymentId: number) {
+    const payment = await this.paymentRepository.findOne({ where: { id: paymentId } });
+    if (!payment || payment.status !== 'pending') return;
+    await this.markApproved(payment);
+  }
+}
