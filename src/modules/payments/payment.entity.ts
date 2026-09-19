@@ -17,6 +17,9 @@ export class Payment {
   @Column()
   paymentMethod: string;
 
+  @Column({ nullable: true })
+  plan: string;
+
   @Column()
   status: string;
 
