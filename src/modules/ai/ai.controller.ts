@@ -1,4 +1,5 @@
-import { Body, Controller, Post, UploadedFiles, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Post, Res, UploadedFiles, UseGuards, UseInterceptors } from '@nestjs/common';
+import type { Response } from 'express';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { AiService } from './ai.service';
 import { ChatDto } from './dto/chat.dto';
@@ -15,6 +16,14 @@ export class AiController {
     return this.aiService.chat(dto);
   }
 
+  // صوت المساعد — مفتوح، يرجّع ملف صوت MP3
+  @Post('speak')
+  async speak(@Body('text') text: string, @Res() res: Response) {
+    const audio = await this.aiService.speak(text || '');
+    res.set({ 'Content-Type': 'audio/mpeg', 'Content-Length': audio.length });
+    res.send(audio);
+  }
+
   // مساعد إكمال الإعلان بالصور — للبائعين المسجّلين فقط
   @Post('complete-listing')
   @UseGuards(JwtAuthGuard)
@@ -22,4 +31,4 @@ export class AiController {
   completeListing(@UploadedFiles() files: any[], @Body() dto: CompleteListingDto) {
     return this.aiService.completeListing(dto, files || []);
   }
-                                          }
+}
