@@ -31,16 +31,19 @@ export class ListingsService {
     return [];
   }
 
+  // إعلان يعتبر مميز طالما تاريخ الانتهاء لسه ما وصل — تنتهي الميزة تلقائيًا بدون أي مهمة مجدولة
+  private serialize(l: Listing) {
+    const isFeatured = !!(l.featuredUntil && new Date(l.featuredUntil) > new Date());
+    return { ...l, images: this.parseImages(l.images), isFeatured };
+  }
+
   async findAll(filters?: any): Promise<any[]> {
     const listings = await this.repo.find({
       order: { createdAt: 'DESC' },
       take: 100,
     });
 
-    return listings.map((l) => ({
-      ...l,
-      images: this.parseImages(l.images),
-    }));
+    return listings.map((l) => this.serialize(l));
   }
 
   async createWithImages(
@@ -70,24 +73,14 @@ export class ListingsService {
     const saved = await this.repo.save(listing);
     const savedListing = this.getSingleListing(saved);
 
-    return {
-      data: {
-        ...savedListing,
-        images: this.parseImages(savedListing.images),
-      },
-    };
+    return { data: this.serialize(savedListing) };
   }
 
   async findOne(id: number) {
     const listing = await this.repo.findOne({ where: { id } });
     if (!listing) throw new NotFoundException(`Listing #${id} not found`);
 
-    return {
-      data: {
-        ...listing,
-        images: this.parseImages(listing.images),
-      },
-    };
+    return { data: this.serialize(listing) };
   }
 
   async update(id: number, dto: UpdateListingDto, userId: number) {
@@ -110,12 +103,7 @@ export class ListingsService {
     const saved = await this.repo.save(listing);
     const savedListing = this.getSingleListing(saved);
 
-    return {
-      data: {
-        ...savedListing,
-        images: this.parseImages(savedListing.images),
-      },
-    };
+    return { data: this.serialize(savedListing) };
   }
 
   async remove(id: number, userId: number) {
@@ -136,17 +124,16 @@ export class ListingsService {
       order: { createdAt: 'DESC' },
     });
 
-    return listings.map((l) => ({
-      ...l,
-      images: this.parseImages(l.images),
-    }));
+    return listings.map((l) => this.serialize(l));
   }
 
-  async setFeatured(id: number, isFeatured: boolean) {
+  // يمدد/يلغي تمييز الإعلان. مرّر تاريخ للتفعيل حتى تلك اللحظة، أو null لإلغاء التمييز فورًا
+  async setFeatured(id: number, featuredUntil: Date | null) {
     const listing = await this.repo.findOne({ where: { id } });
     if (!listing) throw new NotFoundException(`Listing #${id} not found`);
-    listing.isFeatured = isFeatured;
+    listing.featuredUntil = featuredUntil as any;
+    listing.isFeatured = !!featuredUntil;
     const saved = await this.repo.save(listing);
-    return { ...saved, images: this.parseImages(saved.images) };
+    return this.serialize(saved);
   }
 }
