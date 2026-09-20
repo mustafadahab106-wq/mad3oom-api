@@ -43,6 +43,9 @@ export class Listing {
   legalStatus: string;
 
   @Column({ nullable: true })
+  specs: string;
+
+  @Column({ nullable: true })
   vin: string;
 
   @Column({ nullable: true })
@@ -59,6 +62,12 @@ export class Listing {
 
   @Column({ type: 'timestamptz', nullable: true })
   featuredUntil: Date;
+
+  @Column({ default: false })
+  isCertified: boolean;
+
+  @Column({ type: 'int', nullable: true })
+  consignmentScrapyardId: number;
 
   @Column({ type: 'timestamptz', nullable: true })
   auctionEnd: Date;
