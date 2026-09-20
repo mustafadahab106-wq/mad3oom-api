@@ -112,6 +112,39 @@ export class PaymentsService {
     return this.paymentRepository.save(payment);
   }
 
+  // "اشترِ الآن" — شراء مباشر لسيارة موثّقة (Mad3oom Certified) بسعرها الكامل
+  async createBuyNowSession(listingId: number, buyerUserId: number) {
+    const listingResult: any = await this.listingsService.findOne(listingId);
+    const listing = listingResult?.data ?? listingResult;
+    if (!listing) throw new NotFoundException('Listing not found');
+    if (!listing.isCertified) {
+      throw new BadRequestException('Direct purchase is only available for Mad3oom Certified listings');
+    }
+    if (listing.status === 'sold') {
+      throw new BadRequestException('This listing has already been sold');
+    }
+
+    const secretKey = process.env.STRIPE_SECRET_KEY;
+    if (!secretKey) {
+      throw new InternalServerErrorException('Card payment is not configured yet');
+    }
+    const baseUrl = process.env.FRONTEND_URL || 'https://mad3oom.com';
+    const session = await createCheckoutSession({
+      secretKey,
+      priceAED: Number(listing.price) || 0,
+      productName: `${listing.make || ''} ${listing.model || ''} ${listing.year || ''}`.trim() || 'Mad3oom Certified Vehicle',
+      successUrl: `${baseUrl}/listing/?id=${listingId}&purchase=success`,
+      cancelUrl: `${baseUrl}/listing/?id=${listingId}&purchase=cancelled`,
+      metadata: { buyNowListingId: String(listingId), buyerUserId: String(buyerUserId) },
+    });
+
+    return { checkoutUrl: session.url };
+  }
+
+  async handleBuyNowCompleted(listingId: number) {
+    await this.listingsService.markSold(listingId);
+  }
+
   // يُستدعى من ويبهوك Stripe بعد التحقق من التوقيع بالكونترولر
   async handleStripeCheckoutCompleted(paymentId: number) {
     const payment = await this.paymentRepository.findOne({ where: { id: paymentId } });
