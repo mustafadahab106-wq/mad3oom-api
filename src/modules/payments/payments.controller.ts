@@ -45,6 +45,13 @@ export class PaymentsController {
     return this.paymentsService.create(dto, Number(req.user.userId));
   }
 
+  // "اشترِ الآن" — شراء مباشر لسيارة موثّقة بسعرها الكامل
+  @Post('buy-now')
+  @UseGuards(JwtAuthGuard)
+  buyNow(@Body('listingId') listingId: number, @Req() req: any) {
+    return this.paymentsService.createBuyNowSession(Number(listingId), Number(req.user.userId));
+  }
+
   @Patch(':id/approve')
   @UseGuards(JwtAuthGuard, AdminGuard)
   approve(@Param('id') id: string) {
@@ -71,8 +78,12 @@ export class PaymentsController {
 
     const event = JSON.parse(rawBody.toString('utf8'));
     if (event.type === 'checkout.session.completed') {
-      const paymentId = Number(event.data?.object?.metadata?.paymentId);
-      if (paymentId) await this.paymentsService.handleStripeCheckoutCompleted(paymentId);
+      const metadata = event.data?.object?.metadata || {};
+      if (metadata.buyNowListingId) {
+        await this.paymentsService.handleBuyNowCompleted(Number(metadata.buyNowListingId));
+      } else if (metadata.paymentId) {
+        await this.paymentsService.handleStripeCheckoutCompleted(Number(metadata.paymentId));
+      }
     }
     return { received: true };
   }
