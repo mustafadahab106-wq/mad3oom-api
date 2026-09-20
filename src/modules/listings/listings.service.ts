@@ -136,4 +136,23 @@ export class ListingsService {
     const saved = await this.repo.save(listing);
     return this.serialize(saved);
   }
+
+  // يُستخدم من الأدمن لتفعيل/إلغاء "Mad3oom Certified" على أي إعلان
+  async setCertified(id: number, isCertified: boolean, consignmentScrapyardId: number | null) {
+    const listing = await this.repo.findOne({ where: { id } });
+    if (!listing) throw new NotFoundException(`Listing #${id} not found`);
+    listing.isCertified = isCertified;
+    listing.consignmentScrapyardId = consignmentScrapyardId as any;
+    const saved = await this.repo.save(listing);
+    return this.serialize(saved);
+  }
+
+  // يُستخدم بعد إتمام دفع "اشترِ الآن" على إعلان موثّق (Mad3oom Certified)
+  async markSold(id: number) {
+    const listing = await this.repo.findOne({ where: { id } });
+    if (!listing) throw new NotFoundException(`Listing #${id} not found`);
+    listing.status = 'sold';
+    const saved = await this.repo.save(listing);
+    return this.serialize(saved);
+  }
 }
