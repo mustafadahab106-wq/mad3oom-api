@@ -17,6 +17,7 @@ import { ListingsService } from './listings.service';
 import { UpdateListingDto } from './dto/update-listing.dto';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { AdminGuard } from '../auth/admin.guard';
 import { CloudinaryService } from '../media/cloudinary.service';
 
 
@@ -87,6 +88,12 @@ export class ListingsController {
     const userId = Number(req.user?.userId);
     if (!userId) throw new UnauthorizedException('Invalid token payload');
     return this.listingsService.update(+id, dto, userId);
+  }
+
+  @Patch(':id/certify')
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  certify(@Param('id') id: string, @Body() body: { isCertified: boolean; consignmentScrapyardId?: number }) {
+    return this.listingsService.setCertified(+id, !!body.isCertified, body.consignmentScrapyardId ?? null);
   }
 
   @Delete(':id')
