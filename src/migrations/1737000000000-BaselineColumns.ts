@@ -1,37 +1,15 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-// هذا الملف يسجّل بالكود كل الأعمدة اللي أضفناها يدويًا بـ SQL لين الآن.
-// كل أمر مكتوب بأسلوب "IF NOT EXISTS" فآمن يشتغل حتى لو العمود موجود أصلاً.
-export class BaselineColumns1737000000000 implements MigrationInterface {
-  name = 'BaselineColumns1737000000000';
-
-  public async up(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(
-      `ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "isAdmin" boolean NOT NULL DEFAULT false`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "listings" ADD COLUMN IF NOT EXISTS "featuredUntil" timestamptz`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "listings" ADD COLUMN IF NOT EXISTS "specs" character varying`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "payments" ADD COLUMN IF NOT EXISTS "plan" character varying`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "listings" ADD COLUMN IF NOT EXISTS "isCertified" boolean NOT NULL DEFAULT false`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "listings" ADD COLUMN IF NOT EXISTS "consignmentScrapyardId" integer`,
-    );
+export class Messages1737100000000 implements MigrationInterface {
+  name = 'Messages1737100000000';
+  public async up(q: QueryRunner): Promise<void> {
+    await q.query(`CREATE TABLE IF NOT EXISTS "conversations" ("id" SERIAL NOT NULL, "user1Id" integer NOT NULL, "user2Id" integer NOT NULL, "listingId" integer, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "PK_conversations" PRIMARY KEY ("id"))`);
+    await q.query(`CREATE UNIQUE INDEX IF NOT EXISTS "IDX_conversation_pair_listing" ON "conversations" ("user1Id", "user2Id", COALESCE("listingId", 0))`);
+    await q.query(`CREATE TABLE IF NOT EXISTS "messages" ("id" SERIAL NOT NULL, "conversationId" integer NOT NULL, "senderId" integer NOT NULL, "body" text NOT NULL, "readAt" TIMESTAMP WITH TIME ZONE, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "PK_messages" PRIMARY KEY ("id"))`);
+    await q.query(`CREATE INDEX IF NOT EXISTS "IDX_messages_conversation_created" ON "messages" ("conversationId", "createdAt")`);
   }
-
-  public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`ALTER TABLE "listings" DROP COLUMN IF EXISTS "consignmentScrapyardId"`);
-    await queryRunner.query(`ALTER TABLE "listings" DROP COLUMN IF EXISTS "isCertified"`);
-    await queryRunner.query(`ALTER TABLE "payments" DROP COLUMN IF EXISTS "plan"`);
-    await queryRunner.query(`ALTER TABLE "listings" DROP COLUMN IF EXISTS "specs"`);
-    await queryRunner.query(`ALTER TABLE "listings" DROP COLUMN IF EXISTS "featuredUntil"`);
-    await queryRunner.query(`ALTER TABLE "users" DROP COLUMN IF EXISTS "isAdmin"`);
+  public async down(q: QueryRunner): Promise<void> {
+    await q.query(`DROP TABLE IF EXISTS "messages"`);
+    await q.query(`DROP TABLE IF EXISTS "conversations"`);
   }
-      }
+}
