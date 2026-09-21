@@ -155,4 +155,4 @@ export class ListingsService {
     const saved = await this.repo.save(listing);
     return this.serialize(saved);
   }
-        }
+      }
