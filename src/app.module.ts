@@ -1,5 +1,6 @@
+// src/app.module.ts
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { AppController } from './app.controller';
@@ -15,21 +16,42 @@ import { DeletionRequestsModule } from './modules/deletion-requests/deletion-req
 import { FieldInventoryModule } from './modules/field-inventory/field-inventory.module';
 import { AiModule } from './modules/ai/ai.module';
 
-import { getDatabaseConfig } from './config/database.config';
-
 @Module({
   imports: [
-    // Environment variables
-    ConfigModule.forRoot({
-      isGlobal: true,
-    }),
+    ConfigModule.forRoot({ isGlobal: true }),
 
-    // Unified database configuration
     TypeOrmModule.forRootAsync({
-      useFactory: () => getDatabaseConfig(),
-    }),
+  imports: [ConfigModule],
+  useFactory: (configService: ConfigService) => {
+    const databaseUrl = configService.get<string>('DATABASE_URL');
+    const isProd = configService.get('NODE_ENV') === 'production';
+    
+    // إذا كان هناك DATABASE_URL (Railway) استخدم PostgreSQL
+    if (databaseUrl && (databaseUrl.startsWith('postgres://') || databaseUrl.startsWith('postgresql://'))) {
+      return {
+        type: 'postgres',
+        url: databaseUrl,
+        autoLoadEntities: true,
+        synchronize: !isProd,
+        migrations: [__dirname + '/../migrations/*{.ts,.js}'],
+        migrationsRun: true,
+        ssl: isProd ? { rejectUnauthorized: false } : false,
+        logging: true,
+      };
+    }
+    
+    // وإلا استخدم SQLite محلياً
+    return {
+      type: 'sqlite',
+      database: 'database.sqlite',
+      entities: [__dirname + '/../**/*.entity{.ts,.js}'],
+      synchronize: true,
+      logging: true,
+    };
+  },
+  inject: [ConfigService],
+}),
 
-    // Application modules
     AuthModule,
     UsersModule,
     ListingsModule,
@@ -40,9 +62,7 @@ import { getDatabaseConfig } from './config/database.config';
     FieldInventoryModule,
     AiModule,
   ],
-
   controllers: [AppController],
-
   providers: [AppService],
 })
 export class AppModule {}
