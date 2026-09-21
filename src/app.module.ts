@@ -13,6 +13,9 @@ import { MediaModule } from './modules/media/media.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { VinRecordsModule } from './modules/vin-records/vin-records.module';
 import { DeletionRequestsModule } from './modules/deletion-requests/deletion-requests.module';
+import { FieldInventoryModule } from './modules/field-inventory/field-inventory.module';
+import { AiModule } from './modules/ai/ai.module';
+import { MessagesModule } from './modules/messages/messages.module';
 
 @Module({
   imports: [
@@ -31,6 +34,8 @@ import { DeletionRequestsModule } from './modules/deletion-requests/deletion-req
         url: databaseUrl,
         autoLoadEntities: true,
         synchronize: !isProd,
+        migrations: [__dirname + '/../migrations/*{.ts,.js}'],
+        migrationsRun: true,
         ssl: isProd ? { rejectUnauthorized: false } : false,
         logging: true,
       };
@@ -55,6 +60,9 @@ import { DeletionRequestsModule } from './modules/deletion-requests/deletion-req
     PaymentsModule,
     VinRecordsModule,
     DeletionRequestsModule,
+    FieldInventoryModule,
+    AiModule,
+    MessagesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
