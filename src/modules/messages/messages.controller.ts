@@ -9,6 +9,17 @@ import { MessagesService } from './messages.service';
 export class MessagesController {
   constructor(private readonly service: MessagesService) {}
 
+  @Get('notifications')
+  notifications(@Req() req: any) { return this.service.listNotifications(Number(req.user.userId)); }
+
+  @Patch('notifications/read-all')
+  readAllNotifications(@Req() req: any) { return this.service.markAllNotificationsRead(Number(req.user.userId)); }
+
+  @Patch('notifications/:id/read')
+  readNotification(@Req() req: any, @Param('id') id: string) {
+    return this.service.markNotificationRead(Number(id), Number(req.user.userId));
+  }
+
   @Get('conversations')
   list(@Req() req: any) { return this.service.listConversations(Number(req.user.userId)); }
 
