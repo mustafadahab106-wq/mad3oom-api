@@ -87,7 +87,7 @@ export class ListingsService {
     const listing = await this.repo.findOne({ where: { id } });
     if (!listing) throw new NotFoundException(`Listing #${id} not found`);
 
-    if (listing.userId !== userId && !isAdmin) {
+    if (listing.userId !== userId) {
       throw new ForbiddenException('You do not have permission to update this listing');
     }
 
@@ -110,7 +110,7 @@ export class ListingsService {
     const listing = await this.repo.findOne({ where: { id } });
     if (!listing) throw new NotFoundException(`Listing #${id} not found`);
 
-    if (listing.userId !== userId) {
+    if (listing.userId !== userId && !isAdmin) {
       throw new ForbiddenException('You do not have permission to delete this listing');
     }
 
