@@ -101,6 +101,6 @@ export class ListingsController {
   remove(@Param('id') id: string, @Req() req: any) {
     const userId = Number(req.user?.userId);
     if (!userId) throw new UnauthorizedException('Invalid token payload');
-    return this.listingsService.remove(+id, userId);
+    return this.listingsService.remove(+id, userId, !!req.user?.isAdmin);
   }
 }
