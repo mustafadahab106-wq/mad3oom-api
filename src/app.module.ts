@@ -34,7 +34,7 @@ import { MessagesModule } from './modules/messages/messages.module';
         url: databaseUrl,
         autoLoadEntities: true,
         synchronize: !isProd,
-        migrations: [__dirname + '/../migrations/*{.ts,.js}'],
+        migrations: [__dirname + '/migrations/*{.ts,.js}'],
         migrationsRun: true,
         ssl: isProd ? { rejectUnauthorized: false } : false,
         logging: true,
