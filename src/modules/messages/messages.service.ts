@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Conversation } from './entities/conversation.entity';
 import { Message } from './entities/message.entity';
+import { Notification } from './entities/notification.entity';
 import { UsersService } from '../users/users.service';
 
 @Injectable()
@@ -10,6 +11,7 @@ export class MessagesService {
   constructor(
     @InjectRepository(Conversation) private readonly conversations: Repository<Conversation>,
     @InjectRepository(Message) private readonly messages: Repository<Message>,
+    @InjectRepository(Notification) private readonly notifications: Repository<Notification>,
     private readonly usersService: UsersService,
   ) {}
 
@@ -67,7 +69,41 @@ export class MessagesService {
     const message = await this.messages.save(this.messages.create({ conversationId, senderId: userId, body: text, readAt: null }));
     conversation.updatedAt = new Date();
     await this.conversations.save(conversation);
+    const recipientId = conversation.user1Id === userId ? conversation.user2Id : conversation.user1Id;
+    let senderName = `#${userId}`;
+    try {
+      const sender = await this.usersService.findOne(userId);
+      senderName = sender?.name || sender?.email || senderName;
+    } catch {}
+    await this.notifications.save(this.notifications.create({
+      userId: recipientId,
+      type: 'message',
+      title: 'رسالة جديدة',
+      body: `${senderName}: ${text.slice(0, 160)}`,
+      conversationId,
+      messageId: message.id,
+      readAt: null,
+    }));
     return message;
+  }
+
+  async listNotifications(userId: number) {
+    return this.notifications.find({ where: { userId }, order: { createdAt: 'DESC' }, take: 100 });
+  }
+
+  async markNotificationRead(id: number, userId: number) {
+    const notification = await this.notifications.findOne({ where: { id, userId } });
+    if (!notification) throw new NotFoundException('Notification not found');
+    if (!notification.readAt) {
+      notification.readAt = new Date();
+      await this.notifications.save(notification);
+    }
+    return { ok: true };
+  }
+
+  async markAllNotificationsRead(userId: number) {
+    await this.notifications.createQueryBuilder().update(Notification).set({ readAt: new Date() }).where('"userId" = :userId', { userId }).andWhere('"readAt" IS NULL').execute();
+    return { ok: true };
   }
 
   async markRead(conversationId: number, userId: number) {
