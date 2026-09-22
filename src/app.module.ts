@@ -15,6 +15,7 @@ import { VinRecordsModule } from './modules/vin-records/vin-records.module';
 import { DeletionRequestsModule } from './modules/deletion-requests/deletion-requests.module';
 import { FieldInventoryModule } from './modules/field-inventory/field-inventory.module';
 import { AiModule } from './modules/ai/ai.module';
+import { MessagesModule } from './modules/messages/messages.module';
 
 @Module({
   imports: [
@@ -61,6 +62,7 @@ import { AiModule } from './modules/ai/ai.module';
     DeletionRequestsModule,
     FieldInventoryModule,
     AiModule,
+    MessagesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
