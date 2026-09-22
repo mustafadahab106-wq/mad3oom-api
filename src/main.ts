@@ -13,29 +13,17 @@ async function testDatabaseConnection(logger: Logger) {
   }
 
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { Client } = require('pg');
-    
-    // تعديل الرابط لإضافة sslmode إذا لم يكن موجوداً
-    let connectionString = databaseUrl;
-    if (!connectionString.includes('sslmode=')) {
-      connectionString += '?sslmode=require';
-    }
-    
     const client = new Client({
-      connectionString: connectionString,
-      ssl: {
-        rejectUnauthorized: false
-      }
+      connectionString: databaseUrl,
+      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
     });
-    
     await client.connect();
-    logger.log('✅ PostgreSQL connection successful on Railway');
+    logger.log('PostgreSQL connection successful');
     await client.end();
     return true;
   } catch (error: any) {
-    logger.error(`❌ PostgreSQL connection failed: ${error?.message || error}`);
-    logger.error('Tip: Railway requires sslmode=require in DATABASE_URL');
+    logger.error(`PostgreSQL connection failed: ${error?.message || error}`);
     return false;
   }
 }
