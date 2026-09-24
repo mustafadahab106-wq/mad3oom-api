@@ -69,41 +69,29 @@ export class MessagesService {
     const message = await this.messages.save(this.messages.create({ conversationId, senderId: userId, body: text, readAt: null }));
     conversation.updatedAt = new Date();
     await this.conversations.save(conversation);
+
+    // إشعار تلقائي للطرف الآخر بالمحادثة
     const recipientId = conversation.user1Id === userId ? conversation.user2Id : conversation.user1Id;
-    let senderName = `#${userId}`;
+    let senderName = 'مستخدم';
     try {
       const sender = await this.usersService.findOne(userId);
       senderName = sender?.name || sender?.email || senderName;
-    } catch {}
-    await this.notifications.save(this.notifications.create({
-      userId: recipientId,
-      type: 'message',
-      title: 'رسالة جديدة',
-      body: `${senderName}: ${text.slice(0, 160)}`,
-      conversationId,
-      messageId: message.id,
-      readAt: null,
-    }));
-    return message;
-  }
-
-  async listNotifications(userId: number) {
-    return this.notifications.find({ where: { userId }, order: { createdAt: 'DESC' }, take: 100 });
-  }
-
-  async markNotificationRead(id: number, userId: number) {
-    const notification = await this.notifications.findOne({ where: { id, userId } });
-    if (!notification) throw new NotFoundException('Notification not found');
-    if (!notification.readAt) {
-      notification.readAt = new Date();
-      await this.notifications.save(notification);
+    } catch {
+      // نكمل بالاسم الافتراضي لو تعذر جلب المرسل
     }
-    return { ok: true };
-  }
+    await this.notifications.save(
+      this.notifications.create({
+        userId: recipientId,
+        type: 'message',
+        title: senderName,
+        body: text.slice(0, 200),
+        conversationId,
+        messageId: message.id,
+        readAt: null,
+      }),
+    );
 
-  async markAllNotificationsRead(userId: number) {
-    await this.notifications.createQueryBuilder().update(Notification).set({ readAt: new Date() }).where('"userId" = :userId', { userId }).andWhere('"readAt" IS NULL').execute();
-    return { ok: true };
+    return message;
   }
 
   async markRead(conversationId: number, userId: number) {
@@ -118,4 +106,28 @@ export class MessagesService {
       .execute();
     return { ok: true };
   }
-      }
+
+  // ---------- الإشعارات ----------
+  async listNotifications(userId: number) {
+    return this.notifications.find({ where: { userId }, order: { createdAt: 'DESC' }, take: 50 });
+  }
+
+  async markNotificationRead(id: number, userId: number) {
+    const notification = await this.notifications.findOne({ where: { id } });
+    if (!notification) throw new NotFoundException('Notification not found');
+    if (notification.userId !== userId) throw new ForbiddenException('Not your notification');
+    notification.readAt = new Date();
+    return this.notifications.save(notification);
+  }
+
+  async markAllNotificationsRead(userId: number) {
+    await this.notifications
+      .createQueryBuilder()
+      .update(Notification)
+      .set({ readAt: new Date() })
+      .where('"userId" = :userId', { userId })
+      .andWhere('"readAt" IS NULL')
+      .execute();
+    return { ok: true };
+  }
+}
