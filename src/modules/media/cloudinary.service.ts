@@ -21,6 +21,21 @@ export class CloudinaryService {
         {
           folder,
           resource_type: 'image',
+          transformation: [
+            {
+              overlay: {
+                font_family: 'Arial',
+                font_size: 54,
+                font_weight: 'bold',
+                text: 'مدعوم | MAD3OOM',
+              },
+              color: '#FFFFFF',
+              opacity: 42,
+              gravity: 'south',
+              y: 38,
+              border: '2px_solid_rgb:202020',
+            },
+          ],
         },
         (error, result) => {
           if (error) return reject(error);
