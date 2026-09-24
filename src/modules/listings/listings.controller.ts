@@ -48,7 +48,7 @@ export class ListingsController {
 
   @Post()
   @UseGuards(JwtAuthGuard)
-  @UseInterceptors(FilesInterceptor('images', 6))
+  @UseInterceptors(FilesInterceptor('images', 8))
   async create(
     @UploadedFiles() files: any[],
     @Body() createListingDto: any,
