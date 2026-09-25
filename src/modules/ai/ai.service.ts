@@ -105,7 +105,8 @@ export class AiService {
       throw new BadRequestException('At least one photo is required');
     }
 
-    const imageBlocks = files.slice(0, 4).map((f) => ({
+    // نرسل كل الصور (لين 8) — عشان صور رقم الشاصي والعداد ما تنقطع لو كانت بمواضع متأخرة
+    const imageBlocks = files.slice(0, 8).map((f) => ({
       type: 'image',
       source: {
         type: 'base64',
@@ -127,9 +128,11 @@ export class AiService {
 
     const system = [
       'You assist sellers on MAD3OOM, a fixed-price marketplace for damaged/salvage cars in the Gulf region.',
-      'Look at the provided photos and any known details, then respond with ONLY a JSON object (no markdown, no prose, no code fences) with exactly these keys:',
-      '{"make":string,"model":string,"year":number|null,"damageType":string,"description":string,"suggestedPriceAED":number,"confidence":"low"|"medium"|"high"}',
+      'Look at ALL the provided photos (there may be up to 8, covering different angles, the VIN/chassis plate, and the odometer/dashboard) and any known details, then respond with ONLY a JSON object (no markdown, no prose, no code fences) with exactly these keys:',
+      '{"make":string,"model":string,"year":number|null,"damageType":string,"description":string,"suggestedPriceAED":number,"confidence":"low"|"medium"|"high","vin":string|null,"mileage":number|null}',
       'The "description" must be 2-3 sentences written in Arabic, honest about visible damage, suitable for a listing page.',
+      'For "vin": carefully read any VIN/chassis plate, sticker, or engraved number visible in any photo, and return the exact 17-character alphanumeric VIN in uppercase with no spaces. If no VIN is clearly legible in any photo, return null — never guess or invent a VIN.',
+      'For "mileage": carefully read the odometer or dashboard display in any photo showing it, and return the distance in kilometers as a plain number (convert from miles to km if the display is in miles). If no odometer reading is clearly legible, return null — never guess.',
       avgPrice
         ? `Similar listings already on the platform for this make/model currently average ${avgPrice} AED — weigh this alongside visible condition when suggesting a price.`
         : 'No directly comparable listings were found on the platform, so base the price estimate on general Gulf-market knowledge for a damaged vehicle of this type.',
@@ -157,8 +160,8 @@ export class AiService {
             {
               type: 'text',
               text: knownDetails
-                ? `Known details so far: ${knownDetails}. Analyze the photos and fill in the rest.`
-                : 'Analyze the photos and fill in the listing details.',
+                ? `Known details so far: ${knownDetails}. Analyze the photos and fill in the rest, including the VIN and mileage if visible.`
+                : 'Analyze the photos and fill in the listing details, including the VIN and mileage if visible.',
             },
           ],
         },
@@ -174,6 +177,7 @@ export class AiService {
     try {
       const cleaned = raw.replace(/```json|```/g, '').trim();
       const parsed = JSON.parse(cleaned);
+      if (parsed.vin) parsed.vin = String(parsed.vin).toUpperCase().replace(/\s/g, '');
       return { ...parsed, comparableAveragePriceAED: avgPrice };
     } catch {
       throw new InternalServerErrorException('AI response could not be parsed');
@@ -217,4 +221,4 @@ export class AiService {
     const arrayBuffer = await res.arrayBuffer();
     return Buffer.from(arrayBuffer);
   }
-}
+  }
