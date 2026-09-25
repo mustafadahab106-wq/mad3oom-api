@@ -24,7 +24,7 @@ export class AiController {
     res.send(audio);
   }
 
-  // مساعد إكمال الإعلان بالصور — للبائعين المسجّلين فقط (حتى 8 صور: زوايا السيارة + رقم الشاصي + العداد)
+  // مساعد إكمال الإعلان بالصور — للبائعين المسجّلين فقط
   @Post('complete-listing')
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(FilesInterceptor('images', 8))
