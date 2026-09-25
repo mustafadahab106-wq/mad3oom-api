@@ -42,7 +42,7 @@ export class AiService {
     return res.json();
   }
 
-  // ---------- ميزة 1: مساعد محادثة للزوار ----------
+  // ---------- ميزة 1: مساعد محادثة للزوار (ديبو) ----------
   async chat(dto: ChatDto) {
     const listings = await this.listingsService.findAll();
     const contextListings = listings.slice(0, 30).map((l: any) => ({
@@ -67,7 +67,7 @@ export class AiService {
     ].join('\n');
 
     const system = [
-      'You are the AI shopping assistant for MAD3OOM, a fixed-price marketplace for damaged/salvage cars in the Gulf region.',
+      'Your name is Dibo, the friendly AI shopping assistant for MAD3OOM, a fixed-price marketplace for damaged/salvage cars in the Gulf region. If asked your name, say Dibo (ديبو).',
       'Reply in the same language the visitor writes in (Arabic or English).',
       'Only recommend listings that appear in AVAILABLE_LISTINGS below — never invent a car that is not there.',
       'When you recommend a listing, mention its id, make, model, year, price and city so the app can link to it.',
@@ -221,4 +221,4 @@ export class AiService {
     const arrayBuffer = await res.arrayBuffer();
     return Buffer.from(arrayBuffer);
   }
-  }
+      }
