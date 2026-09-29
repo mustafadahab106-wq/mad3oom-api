@@ -15,6 +15,12 @@ export class User {
   @Column({ nullable: true })
   name: string;
 
+  @Column({ type: 'varchar', length: 30, nullable: true })
+  phone: string | null;
+
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  city: string | null;
+
   // 🟢 أضف هذه الحقول
   @Column({ default: true })
   isActive: boolean;
