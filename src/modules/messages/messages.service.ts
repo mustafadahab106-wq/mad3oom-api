@@ -120,6 +120,17 @@ export class MessagesService {
     return this.notifications.save(notification);
   }
 
+  async deleteNotification(id: number, userId: number) {
+    const result = await this.notifications.delete({ id, userId });
+    if (!result.affected) throw new NotFoundException('Notification not found');
+    return { ok: true };
+  }
+
+  async clearNotifications(userId: number) {
+    await this.notifications.delete({ userId });
+    return { ok: true };
+  }
+
   async markAllNotificationsRead(userId: number) {
     await this.notifications
       .createQueryBuilder()
