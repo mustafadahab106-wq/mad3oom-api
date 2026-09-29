@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CreateConversationDto } from './dto/create-conversation.dto';
 import { SendMessageDto } from './dto/send-message.dto';
@@ -22,6 +22,16 @@ export class MessagesController {
   @Patch('notifications/:id/read')
   markNotificationRead(@Req() req: any, @Param('id') id: string) {
     return this.service.markNotificationRead(Number(id), Number(req.user.userId));
+  }
+
+  @Delete('notifications')
+  clearNotifications(@Req() req: any) {
+    return this.service.clearNotifications(Number(req.user.userId));
+  }
+
+  @Delete('notifications/:id')
+  deleteNotification(@Req() req: any, @Param('id') id: string) {
+    return this.service.deleteNotification(Number(id), Number(req.user.userId));
   }
 
   @Get('conversations')
